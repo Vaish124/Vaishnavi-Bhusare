@@ -1,0 +1,64 @@
+
+{% comment %}
+  Figma Grid (from scratch)
+  - Six product blocks with “pins” that open a custom modal
+  - Variants rendered dynamically
+  - Add-to-cart via AJAX fetch
+  - Optional “auto add” product when conditions match
+{% endcomment %}
+
+<section id="gg-grid" class="gg-wrap" 
+  data-trigger-color="{{ section.settings.trigger_color | escape }}"
+  data-trigger-size="{{ section.settings.trigger_size | escape }}">
+  <h2 class="gg-grid__title">{{ section.settings.grid_title }}</h2>
+
+  <div class="gg-grid">
+    {% for block in section.blocks %}
+      {% assign p = block.settings.product %}
+      {% if p %}
+        <article class="gg-card" {{ block.shopify_attributes }}>
+          {% if p.featured_media %}
+            {{ p | media_image: class: 'gg-card__img', loading: 'lazy' }}
+          {% endif %}
+          <button class="gg-pin" aria-label="Show {{ p.title | escape }} details" data-product-json-id="prod-{{ block.id }}">＋</button>
+
+          {%- comment -%} Embed product JSON for JS (stable & fast) {%- endcomment -%}
+          <script type="application/json" id="prod-{{ block.id }}">{{ p | json }}</script>
+        </article>
+      {% else %}
+        <article class="gg-card gg-card--placeholder" {{ block.shopify_attributes }}>
+          <div class="gg-card__ph">Select a product</div>
+        </article>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {%- if section.settings.auto_add_product != blank -%}
+    <script type="application/json" id="gg-auto-product">{{ section.settings.auto_add_product | json }}</script>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Gift Guide Grid",
+  "settings": [
+    { "type": "text", "id": "grid_title", "label": "Grid title", "default": "Tisso vison in the wild" },
+
+    { "type": "text", "id": "trigger_color", "label": "Auto-add trigger color value", "default": "Black" },
+    { "type": "text", "id": "trigger_size", "label": "Auto-add trigger size value", "default": "Medium" },
+    { "type": "product", "id": "auto_add_product", "label": "Product to auto-add when the trigger variant is added", "info": "Optional. Example: Soft Winter Jacket" }
+  ],
+  "blocks": [
+    {
+      "type": "product_card",
+      "name": "Product",
+      "limit": 6,
+      "settings": [
+        { "type": "product", "id": "product", "label": "Product" }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [{ "name": "Gift Guide Grid", "blocks": [{ "type": "product_card" },{ "type": "product_card" },{ "type": "product_card" },{ "type": "product_card" },{ "type": "product_card" },{ "type": "product_card" }] }]
+}
+{% endschema %}

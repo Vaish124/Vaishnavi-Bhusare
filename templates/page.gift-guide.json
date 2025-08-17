@@ -1,0 +1,30 @@
+
+{
+  "name": "Gift Guide",
+  "sections": {
+    "figma-banner": {
+      "type": "figma-banner",
+      "settings": {
+        "announcement": "Find the ideal gift for your loved ones.",
+        "cta_top_label": "CHOOSE GIFT →",
+        "cta_top_link": "/collections/all",
+        "hero_heading": "The Gift Guide",
+        "hero_sub": "Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.",
+        "cta_main_label": "SHOP NOW",
+        "cta_main_link": "/collections/all",
+        "strapline": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL",
+        "hero_image": ""
+      }
+    },
+    "figma-grid": {
+      "type": "figma-grid",
+      "settings": {
+        "grid_title": "Tisso vison in the wild",
+        "trigger_color": "Black",
+        "trigger_size": "Medium",
+        "auto_add_product": ""
+      }
+    }
+  },
+  "order": ["figma-banner", "figma-grid"]
+}
