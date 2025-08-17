@@ -1,19 +1,26 @@
-
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
-  "name": "Gift Guide",
   "sections": {
     "figma-banner": {
       "type": "figma-banner",
       "settings": {
-        "announcement": "Find the ideal gift for your loved ones.",
-        "cta_top_label": "CHOOSE GIFT →",
-        "cta_top_link": "/collections/all",
-        "hero_heading": "The Gift Guide",
-        "hero_sub": "Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.",
-        "cta_main_label": "SHOP NOW",
-        "cta_main_link": "/collections/all",
-        "strapline": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL",
-        "hero_image": ""
+        "announcement": "Find the perfect gift for every occasion 🎁",
+        "cta_top_label": "Explore Gifts",
+        "cta_top_link": "/collections/gift-guide",
+        "hero_heading": "Your Holiday Gift Guide 2025",
+        "hero_sub": "Discover handpicked gifts that bring joy and love this festive season.",
+        "cta_main_label": "Start Gifting",
+        "cta_main_link": "/collections/gift-guide",
+        "hero_image": "shopify://shop_images/banner-image-holiday-gifting-themed.png",
+        "strapline": "Free shipping & easy returns on all gifts"
       }
     },
     "figma-grid": {
@@ -26,5 +33,8 @@
       }
     }
   },
-  "order": ["figma-banner", "figma-grid"]
+  "order": [
+    "figma-banner",
+    "figma-grid"
+  ]
 }
