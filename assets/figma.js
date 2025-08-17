@@ -225,6 +225,7 @@
     if (!holder || !holder.textContent) return;
 
     var product = null;
+    
     try { product = JSON.parse(holder.textContent); } catch (err) {}
     if (!product) return;
 
