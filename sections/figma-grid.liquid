@@ -1,128 +1,105 @@
 {% comment %}
-  Gift Guide Grid (custom)
-  - 6 product blocks (selectable in the customizer)
-  - Each block renders a "+" pin that opens a modal
-  - Variants rendered dynamically
-  - AJAX add-to-cart
-  - Optional "auto-add" product when (color == trigger_color AND size == trigger_size)
+  Figma Gift Guide Grid
 {% endcomment %}
 
-<section id="gg-grid"
-  class="gg-wrap"
-  data-trigger-color="{{ section.settings.trigger_color | escape }}"
-  data-trigger-size="{{ section.settings.trigger_size | escape }}"
->
+<section class="figma-grid wrapper">
   {% if section.settings.grid_title != blank %}
-    <h2 class="gg-grid__title">{{ section.settings.grid_title }}</h2>
+    <h2 class="figma-grid__title">{{ section.settings.grid_title }}</h2>
   {% endif %}
 
-  <div class="gg-grid">
+  <div class="figma-grid__list">
     {% for block in section.blocks %}
-      {% assign p = block.settings.product %}
-      <article class="gg-card{% if p == blank %} gg-card--placeholder{% endif %}" {{ block.shopify_attributes }}>
-        {% if p %}
-          {% if p.featured_media %}
-            {{ p | media_image: class: 'gg-card__img', loading: 'lazy' }}
-          {% endif %}
-
-          <button class="gg-pin"
-            aria-label="Show {{ p.title | escape }} details"
-            data-product-json-id="prod-{{ block.id }}"
-          >
-            +
+      {% assign product = block.settings.product %}
+      {% if product %}
+        <article
+          class="figma-grid__item"
+          data-product-handle="{{ product.handle }}"
+          data-product-id="{{ product.id }}"
+        >
+          <button type="button" class="figma-grid__btn" aria-label="Open quick view">
+            <div class="figma-grid__image">
+              {% if product.featured_image %}
+                {{ product.featured_image | image_url: width: 800 | image_tag: alt: product.title }}
+              {% else %}
+                <div class="figma-grid__placeholder">No image</div>
+              {% endif %}
+            </div>
+            <div class="figma-grid__meta">
+              <h3 class="figma-grid__name">{{ product.title }}</h3>
+              {% if product.price %}
+                <div class="figma-grid__price">{{ product.price | money }}</div>
+              {% endif %}
+            </div>
+            <span class="figma-grid__hotspot" aria-hidden="true">+</span>
           </button>
-
-          {%- comment -%}
-            Embed the product JSON for fast access in JS
-          {%- endcomment -%}
-          <script type="application/json" id="prod-{{ block.id }}">
-            {{ p | json }}
-          </script>
-        {% else %}
-          <div class="gg-card__ph">Select a product</div>
-        {% endif %}
-      </article>
+        </article>
+      {% endif %}
     {% endfor %}
   </div>
 
-  {%- if section.settings.auto_add_product != blank -%}
-    <script type="application/json" id="gg-auto-product">
-      {{ section.settings.auto_add_product | json }}
-    </script>
-  {%- endif -%}
-</section>
+  {%- comment -%} Quick View Modal {%- endcomment -%}
+  <div class="figma-modal" id="figmaModal" hidden>
+    <div class="figma-modal__backdrop" data-modal-close></div>
+    <div class="figma-modal__dialog" role="dialog" aria-modal="true" aria-label="Quick view">
+      <button class="figma-modal__close" data-modal-close aria-label="Close">×</button>
+      <div class="figma-modal__content">
+        <div class="figma-modal__gallery" id="qvGallery"></div>
+        <div class="figma-modal__info">
+          <h3 id="qvTitle"></h3>
+          <div id="qvPrice"></div>
+          <div id="qvDesc" class="rte"></div>
 
-{%- comment -%}
-  Quick-View Modal (one per page)
-{%- endcomment -%}
-<div class="gg-modal" id="ggModal" hidden>
-  <div class="gg-modal__backdrop" data-close></div>
-  <div class="gg-modal__dialog" role="dialog" aria-modal="true" aria-label="Quick view">
-    <button class="gg-modal__close" data-close aria-label="Close">×</button>
-
-    <div class="gg-modal__content">
-      <div class="gg-modal__media" id="ggQvMedia"></div>
-
-      <div class="gg-modal__info">
-        <h3 id="ggQvTitle" class="gg-title"></h3>
-        <div id="ggQvPrice" class="gg-price"></div>
-        <div id="ggQvDesc" class="gg-desc rte"></div>
-
-        <form id="ggQvForm" class="gg-form">
-          <div id="ggQvOptions" class="gg-options"><!-- variant pickers injected here --></div>
-          <input type="hidden" id="ggQvVariantId" name="id" />
-          <button class="gg-btn" type="submit" id="ggQvAddBtn">ADD TO CART</button>
-        </form>
-
-        <p id="ggQvError" class="gg-error" hidden></p>
+          <form id="qvForm">
+            <div id="qvOptions"><!-- variant pickers injected here --></div>
+            <input type="hidden" name="id" id="qvVariantId" />
+            <button type="submit" class="btn" id="qvAddBtn">ADD TO CART</button>
+          </form>
+          <div id="qvError" class="figma-modal__error" hidden></div>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</section>
 
 {% schema %}
 {
   "name": "Gift Guide Grid",
   "settings": [
-    {
-      "type": "text",
-      "id": "grid_title",
-      "label": "Grid title",
-      "default": "Tisso vison in the wild"
-    },
-    {
-      "type": "text",
-      "id": "trigger_color",
-      "label": "Auto-add trigger color value",
-      "default": "Black"
-    },
-    {
-      "type": "text",
-      "id": "trigger_size",
-      "label": "Auto-add trigger size value",
-      "default": "Medium"
-    },
-    {
-      "type": "product",
-      "id": "auto_add_product",
-      "label": "Product to auto-add when the trigger variant is added",
-      "info": "Optional. Example: Soft Winter Jacket"
-    }
+    { "type": "text", "id": "grid_title", "label": "Grid title", "default": "Shop by Gift Category" },
+    { "type": "text", "id": "auto_color", "label": "Auto-add trigger color value", "default": "Black" },
+    { "type": "text", "id": "auto_size", "label": "Auto-add trigger size value", "default": "Medium" },
+    { "type": "product", "id": "auto_product", "label": "Product to auto-add when the trigger variant is added", "info": "Example: Soft Winter Jacket" }
   ],
   "blocks": [
     {
-      "type": "product_card",
+      "type": "product",
       "name": "Product",
       "limit": 6,
       "settings": [
-        { "type": "product", "id": "product", "label": "Product" }
+        { "type": "product", "id": "product", "label": "Select product" }
       ]
     }
   ],
-  "max_blocks": 6,
-  "presets": [{
-    "name": "Gift Guide Grid",
-    "blocks": [{ "type": "product_card" },{ "type": "product_card" },{ "type": "product_card" },{ "type": "product_card" },{ "type": "product_card" },{ "type": "product_card" }]
-  }]
+  "presets": [{ "name": "Gift Guide Grid" }]
 }
 {% endschema %}
+
+{% stylesheet %}
+.figma-grid__list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+@media(max-width: 900px){.figma-grid__list{grid-template-columns:repeat(2,1fr)}}
+@media(max-width: 600px){.figma-grid__list{grid-template-columns:1fr}}
+.figma-grid__btn{display:block;width:100%;text-align:left;border:0;background:transparent;cursor:pointer}
+.figma-grid__image img{width:100%;height:auto;display:block;border-radius:12px}
+.figma-grid__hotspot{position:absolute;inset:auto 12px 12px auto;background:#000;color:#fff;border-radius:50%;width:36px;height:36px;display:grid;place-content:center;font-weight:700}
+.figma-modal[hidden]{display:none}
+.figma-modal__backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45)}
+.figma-modal__dialog{position:fixed;inset:5% 50% auto 50%;transform:translate(-50%,0);max-width:980px;width:95%;background:#fff;border-radius:14px;overflow:hidden}
+.figma-modal__content{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px}
+@media(max-width:900px){.figma-modal__content{grid-template-columns:1fr}}
+.figma-modal__close{position:absolute;top:8px;right:12px;border:0;background:transparent;font-size:28px;cursor:pointer}
+.btn{display:inline-block;padding:.9rem 1.25rem;border-radius:999px;background:#111;color:#fff}
+{% endstylesheet %}
+
+{% javascript %}
+window.FIGMA_GRID = window.FIGMA_GRID || {};
+{% endjavascript %}
