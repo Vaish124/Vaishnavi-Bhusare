@@ -26,15 +26,65 @@
     "figma-grid": {
       "type": "figma-grid",
       "settings": {
-        "grid_title": "Tisso vison in the wild",
-        "trigger_color": "Black",
-        "trigger_size": "Medium",
-        "auto_add_product": ""
+        "grid_title": "Luxury Essentials",
+        "auto_color": "Black",
+        "auto_size": "Medium",
+        "auto_product": "dark-winter-jacket"
+      }
+    },
+    "figma_grid_YRDctt": {
+      "type": "figma-grid",
+      "settings": {
+        "grid_title": "Formal Occasions",
+        "auto_color": "Blue",
+        "auto_size": "Large",
+        "auto_product": "blue-silk-tuxedo"
+      }
+    },
+    "figma_grid_wnAUFJ": {
+      "type": "figma-grid",
+      "settings": {
+        "grid_title": "Timeless Style",
+        "auto_color": "Black",
+        "auto_size": "Medium",
+        "auto_product": "classic-leather-jacket"
+      }
+    },
+    "figma_grid_FeAkPQ": {
+      "type": "figma-grid",
+      "settings": {
+        "grid_title": "Outdoor Adventure Gear",
+        "auto_color": "Green",
+        "auto_size": "Medium",
+        "auto_product": "dark-denim-top"
+      }
+    },
+    "figma_grid_k7LrM3": {
+      "type": "figma-grid",
+      "settings": {
+        "grid_title": "Under $50 Favorites",
+        "auto_color": "Red",
+        "auto_size": "Small",
+        "auto_product": "blue-silk-tuxedo"
+      }
+    },
+    "figma_grid_EJmkDx": {
+      "type": "figma-grid",
+      "settings": {
+        "grid_title": " Classic Varsity Top",
+        "auto_color": "Black",
+        "auto_size": "Large",
+        "auto_product": "blue-silk-tuxedo"
       }
     }
   },
   "order": [
     "figma-banner",
-    "figma-grid"
+    "figma-grid",
+    "figma_grid_YRDctt",
+    "figma_grid_wnAUFJ",
+    "figma_grid_FeAkPQ",
+    "figma_grid_k7LrM3",
+    "figma_grid_EJmkDx"
   ]
 }
