@@ -33,19 +33,6 @@
     {% endif %}
 
     {{ content_for_header }}
-
-    {%- comment -%}
-      Include custom product grid CSS.
-      The "unless content_for_header contains" guard reduces duplicate inserts
-      if that asset is already included elsewhere.
-      Preload pattern used for slightly faster load (with noscript fallback).
-    {%- endcomment -%}
-    {% unless content_for_header contains 'custom-product-grid.css' %}
-      <link rel="preload" href="{{ 'custom-product-grid.css' | asset_url }}" as="style" onload="this.rel='stylesheet'">
-      <noscript>
-        {{ 'custom-product-grid.css' | asset_url | stylesheet_tag }}
-      </noscript>
-    {% endunless %}
   </head>
 
   <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
@@ -79,13 +66,5 @@
     {% if settings.quick_add or settings.mobile_quick_add %}
       {% render 'quick-add-modal' %}
     {% endif %}
-
-    {%- comment -%}
-      Include custom product grid JS.
-      Guard prevents duplicate insertion if the script was already included.
-    {%- endcomment -%}
-    {% unless content_for_header contains 'custom-product-grid.js' %}
-      <script src="{{ 'custom-product-grid.js' | asset_url }}" defer="defer"></script>
-    {% endunless %}
   </body>
 </html>
