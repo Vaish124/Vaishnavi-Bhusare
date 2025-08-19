@@ -1,0 +1,41 @@
+/* Custom Product Grid — styles kept minimal & clean */
+/* Grid */
+.cpg{max-width:1200px;margin:0 auto;padding:24px}
+.cpg__title{font-size:clamp(24px,3vw,40px);margin:0 0 18px}
+.cpg__wrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+@media(max-width:900px){.cpg__wrap{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.cpg__wrap{grid-template-columns:1fr}}
+
+.cpg-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;flex-direction:column}
+.cpg-card__thumb{display:block;line-height:0}
+.cpg-card__img{width:100%;height:auto;display:block}
+.cpg-card__ph{aspect-ratio:4/3;background:#f2f2f2;display:grid;place-items:center;color:#777}
+.cpg-card__meta{padding:14px}
+.cpg-card__name{margin:0 0 6px;font-size:18px}
+.cpg-card__price{font-weight:600;margin-bottom:10px}
+.price--compare{opacity:.6;margin-left:6px}
+
+.cpg-quick{display:inline-block;padding:.6rem 1rem;border-radius:999px;background:#111;color:#fff;border:0;cursor:pointer;transition:transform .18s ease,opacity .18s ease}
+.cpg-quick:hover{opacity:.9;transform:translateY(-1px)}
+
+/* Quick View Popup */
+.cpg-qv__overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;z-index:9999}
+.cpg-qv{width:min(680px,92vw);background:#fff;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.2);display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:18px;position:relative}
+@media(max-width:720px){.cpg-qv{grid-template-columns:1fr}}
+.cpg-qv__close{position:absolute;top:8px;right:10px;font-size:20px;border:0;background:transparent;cursor:pointer}
+.cpg-qv__media{line-height:0}
+.cpg-qv__img{width:100%;height:auto;border-radius:8px}
+.cpg-qv__title{margin:.25rem 0 .25rem;font-size:18px}
+.cpg-qv__price{font-weight:700;margin:.25rem 0 .5rem}
+.cpg-qv__desc{font-size:13px;line-height:1.4;color:#333;max-height:7rem;overflow:auto}
+
+.cpg-qv__options{display:grid;gap:10px;margin:.75rem 0}
+.cpg-qv__opt{display:grid;gap:6px}
+.cpg-qv__opt-label{font-size:12px;color:#333}
+.cpg-qv__sel{width:100%;padding:.6rem .75rem;border:1px solid #d7d7d7;border-radius:8px;background:#fff}
+
+.cpg-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:.75rem 1rem;border-radius:999px;border:0;cursor:pointer}
+.cpg-btn--primary{background:#111;color:#fff;transition:transform .18s ease,opacity .18s ease}
+.cpg-btn--primary:hover{opacity:.92;transform:translateY(-1px)}
+.cpg-btn__arrow{display:inline-block;transform:translateX(0);transition:transform .18s ease}
+.cpg-btn--primary:hover .cpg-btn__arrow{transform:translateX(4px)}
