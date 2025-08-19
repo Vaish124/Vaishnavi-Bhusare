@@ -22,9 +22,66 @@
         "hero_image": "shopify://shop_images/banner-image-holiday-gifting-themed.png",
         "strapline": "Free shipping & easy returns on all gifts"
       }
+    },
+    "figma_grid_x36aXi": {
+      "type": "figma-grid",
+      "blocks": {
+        "product_qjqxUE": {
+          "type": "product",
+          "settings": {
+            "product": "floral-white-top"
+          }
+        },
+        "product_A7NGn6": {
+          "type": "product",
+          "settings": {
+            "product": "dark-winter-jacket"
+          }
+        },
+        "product_in9egc": {
+          "type": "product",
+          "settings": {
+            "product": "navy-sport-jacket"
+          }
+        },
+        "product_baxqRG": {
+          "type": "product",
+          "settings": {
+            "product": "blue-silk-tuxedo"
+          }
+        },
+        "product_7UjVwa": {
+          "type": "product",
+          "settings": {
+            "product": "dark-denim-top"
+          }
+        },
+        "product_AwgCtb": {
+          "type": "product",
+          "settings": {
+            "product": "white-cotton-shirt"
+          }
+        }
+      },
+      "block_order": [
+        "product_qjqxUE",
+        "product_A7NGn6",
+        "product_in9egc",
+        "product_baxqRG",
+        "product_7UjVwa",
+        "product_AwgCtb"
+      ],
+      "name": "Gift Guide Grid",
+      "settings": {
+        "grid_title": "Holiday Gift Picks",
+        "auto_color": "Black",
+        "auto_size": "Medium",
+        "auto_product": ""
+      }
     }
   },
   "order": [
-    "figma-banner"
+    "figma-banner",
+    "figma_grid_x36aXi"
   ]
 }
