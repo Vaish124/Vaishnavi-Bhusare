@@ -1,60 +1,79 @@
 {% comment %}
-  Figma Gift Guide Grid
+Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
+- Choose up to 6 products in the editor (blocks)
+- Opens modal with variants pulled from product JSON
+- Adds to cart with fetch /cart/add.js
+- Auto-add “Soft Winter Jacket” if picked variant has Color=Black and Size=Medium
 {% endcomment %}
 
-<section class="figma-grid wrapper">
+<section id="gift-grid" class="gg-wrap"
+  data-auto-color="{{ section.settings.auto_color | escape }}"
+  data-auto-size="{{ section.settings.auto_size | escape }}"
+  data-auto-product-handle="{{ section.settings.auto_product | default: blank | product_url | split: '/products/' | last }}">
   {% if section.settings.grid_title != blank %}
-    <h2 class="figma-grid__title">{{ section.settings.grid_title }}</h2>
+    <h2 class="gg-title">{{ section.settings.grid_title }}</h2>
   {% endif %}
 
-  <div class="figma-grid__list">
+  <div class="gg-grid">
     {% for block in section.blocks %}
-      {% assign product = block.settings.product %}
-      {% if product %}
-        <article
-          class="figma-grid__item"
-          data-product-handle="{{ product.handle }}"
-          data-product-id="{{ product.id }}"
-        >
-          <button type="button" class="figma-grid__btn" aria-label="Open quick view">
-            <div class="figma-grid__image">
-              {% if product.featured_image %}
-                {{ product.featured_image | image_url: width: 800 | image_tag: alt: product.title }}
-              {% else %}
-                <div class="figma-grid__placeholder">No image</div>
-              {% endif %}
+      {% assign p = block.settings.product %}
+      {% if p %}
+        <article class="gg-card" {{ block.shopify_attributes }}>
+          <button class="gg-pin" type="button" aria-label="Quick view {{ p.title | escape }}" data-product-json-id="pjson-{{ block.id }}">＋</button>
+
+          <a href="{{ p.url }}" class="gg-imglink" aria-label="{{ p.title | escape }}">
+            {% if p.featured_media %}
+              {{ p.featured_media
+                | image_url: width: 1200
+                | image_tag: class: 'gg-img', loading: 'lazy', alt: p.title }}
+            {% elsif p.featured_image %}
+              {{ p.featured_image
+                | image_url: width: 1200
+                | image_tag: class: 'gg-img', loading: 'lazy', alt: p.title }}
+            {% else %}
+              <div class="gg-ph">No image</div>
+            {% endif %}
+          </a>
+
+          <div class="gg-meta">
+            <h3 class="gg-name">{{ p.title }}</h3>
+            <div class="gg-price">
+              {%- assign minp = p.price_min | default: p.price -%}
+              {%- if p.compare_at_price_max > minp -%}
+                <span class="gg-price__sale">{{ minp | money }}</span>
+                <s class="gg-price__compare">{{ p.compare_at_price_max | money }}</s>
+              {%- else -%}
+                <span>{{ minp | money }}</span>
+              {%- endif -%}
             </div>
-            <div class="figma-grid__meta">
-              <h3 class="figma-grid__name">{{ product.title }}</h3>
-              {% if product.price %}
-                <div class="figma-grid__price">{{ product.price | money }}</div>
-              {% endif %}
-            </div>
-            <span class="figma-grid__hotspot" aria-hidden="true">+</span>
-          </button>
+          </div>
+
+          {%- comment -%} Inline JSON for stable, fast access {%- endcomment -%}
+          <script type="application/json" id="pjson-{{ block.id }}">{{ p | json }}</script>
         </article>
       {% endif %}
     {% endfor %}
   </div>
 
-  {%- comment -%} Quick View Modal {%- endcomment -%}
-  <div class="figma-modal" id="figmaModal" hidden>
-    <div class="figma-modal__backdrop" data-modal-close></div>
-    <div class="figma-modal__dialog" role="dialog" aria-modal="true" aria-label="Quick view">
-      <button class="figma-modal__close" data-modal-close aria-label="Close">×</button>
-      <div class="figma-modal__content">
-        <div class="figma-modal__gallery" id="qvGallery"></div>
-        <div class="figma-modal__info">
-          <h3 id="qvTitle"></h3>
-          <div id="qvPrice"></div>
-          <div id="qvDesc" class="rte"></div>
+  {%- comment -%} Modal {%- endcomment -%}
+  <div class="gg-modal" id="ggModal" hidden>
+    <div class="gg-backdrop" data-close></div>
+    <div class="gg-dialog" role="dialog" aria-modal="true" aria-label="Quick view">
+      <button class="gg-close" data-close aria-label="Close">×</button>
 
-          <form id="qvForm">
-            <div id="qvOptions"><!-- variant pickers injected here --></div>
-            <input type="hidden" name="id" id="qvVariantId" />
-            <button type="submit" class="btn" id="qvAddBtn">ADD TO CART</button>
+      <div class="gg-body">
+        <div class="gg-gallery" id="ggGallery"></div>
+        <div class="gg-info">
+          <h3 id="ggTitle"></h3>
+          <div id="ggPrice"></div>
+          <div id="ggDesc" class="rte"></div>
+
+          <form id="ggForm">
+            <div id="ggOptions"></div>
+            <input type="hidden" name="id" id="ggVariantId" />
+            <button type="submit" class="gg-btn" id="ggAdd">ADD TO CART</button>
           </form>
-          <div id="qvError" class="figma-modal__error" hidden></div>
+          <div id="ggError" class="gg-error" hidden></div>
         </div>
       </div>
     </div>
@@ -65,10 +84,15 @@
 {
   "name": "Gift Guide Grid",
   "settings": [
-    { "type": "text", "id": "grid_title", "label": "Grid title", "default": "Shop by Gift Category" },
-    { "type": "text", "id": "auto_color", "label": "Auto-add trigger color value", "default": "Black" },
-    { "type": "text", "id": "auto_size", "label": "Auto-add trigger size value", "default": "Medium" },
-    { "type": "product", "id": "auto_product", "label": "Product to auto-add when the trigger variant is added", "info": "Example: Soft Winter Jacket" }
+    { "type": "text", "id": "grid_title", "label": "Grid title", "default": "Holiday Gift Picks" },
+    { "type": "text", "id": "auto_color", "label": "Auto-add trigger color", "default": "Black" },
+    { "type": "text", "id": "auto_size", "label": "Auto-add trigger size", "default": "Medium" },
+    {
+      "type": "product",
+      "id": "auto_product",
+      "label": "Product to auto-add",
+      "info": "Select “Soft Winter Jacket”"
+    }
   ],
   "blocks": [
     {
@@ -80,26 +104,206 @@
       ]
     }
   ],
-  "presets": [{ "name": "Gift Guide Grid" }]
+  "presets": [{ "name": "Gift Guide Grid", "blocks": [{ "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }] }]
 }
 {% endschema %}
 
 {% stylesheet %}
-.figma-grid__list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
-@media(max-width: 900px){.figma-grid__list{grid-template-columns:repeat(2,1fr)}}
-@media(max-width: 600px){.figma-grid__list{grid-template-columns:1fr}}
-.figma-grid__btn{display:block;width:100%;text-align:left;border:0;background:transparent;cursor:pointer}
-.figma-grid__image img{width:100%;height:auto;display:block;border-radius:12px}
-.figma-grid__hotspot{position:absolute;inset:auto 12px 12px auto;background:#000;color:#fff;border-radius:50%;width:36px;height:36px;display:grid;place-content:center;font-weight:700}
-.figma-modal[hidden]{display:none}
-.figma-modal__backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45)}
-.figma-modal__dialog{position:fixed;inset:5% 50% auto 50%;transform:translate(-50%,0);max-width:980px;width:95%;background:#fff;border-radius:14px;overflow:hidden}
-.figma-modal__content{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px}
-@media(max-width:900px){.figma-modal__content{grid-template-columns:1fr}}
-.figma-modal__close{position:absolute;top:8px;right:12px;border:0;background:transparent;font-size:28px;cursor:pointer}
-.btn{display:inline-block;padding:.9rem 1.25rem;border-radius:999px;background:#111;color:#fff}
+.gg-wrap{max-width:1200px;margin:0 auto;padding:24px}
+.gg-title{font-size:clamp(24px,3vw,40px);margin:0 0 16px}
+.gg-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+@media(max-width:900px){.gg-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.gg-grid{grid-template-columns:1fr}}
+.gg-card{position:relative;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.gg-img{display:block;width:100%;height:auto}
+.gg-pin{position:absolute;right:10px;top:10px;border:0;background:#111;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer}
+.gg-meta{padding:12px}
+.gg-name{margin:0 0 6px;font-size:18px}
+.gg-price{font-weight:600}
+.gg-price__compare{opacity:.6;margin-left:6px}
+.gg-ph{aspect-ratio:4/3;background:#f2f2f2;display:grid;place-items:center}
+
+.gg-modal[hidden]{display:none}
+.gg-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45)}
+.gg-dialog{position:fixed;inset:6% 50% auto 50%;transform:translate(-50%,0);width:min(980px,94vw);background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.gg-close{position:absolute;right:12px;top:8px;border:0;background:transparent;font-size:28px;cursor:pointer}
+.gg-body{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:24px}
+@media(max-width:900px){.gg-body{grid-template-columns:1fr}}
+.gg-gallery img{width:100%;height:auto;border-radius:12px}
+.gg-info h3{margin:.25rem 0}
+.gg-btn{display:inline-block;padding:.85rem 1.2rem;border-radius:999px;background:#111;color:#fff;border:0;cursor:pointer}
+.gg-error{margin-top:.5rem;color:#b00020}
+.gg-option{margin:.5rem 0}
+.gg-option label{display:block;font-weight:600;margin-bottom:6px}
+.gg-option select{width:100%;padding:.5rem;border-radius:10px;border:1px solid #ddd}
 {% endstylesheet %}
 
 {% javascript %}
-window.FIGMA_GRID = window.FIGMA_GRID || {};
+(() => {
+  const sect = document.currentScript.closest('#gift-grid');
+  const modal = sect.querySelector('#ggModal');
+  const backdrop = modal.querySelector('[data-close]');
+  const closeBtn = modal.querySelector('.gg-close');
+  const titleEl = modal.querySelector('#ggTitle');
+  const priceEl = modal.querySelector('#ggPrice');
+  const descEl  = modal.querySelector('#ggDesc');
+  const gallery = modal.querySelector('#ggGallery');
+  const optionsWrap = modal.querySelector('#ggOptions');
+  const variantIdInput = modal.querySelector('#ggVariantId');
+  const addBtn = modal.querySelector('#ggAdd');
+  const errEl  = modal.querySelector('#ggError');
+
+  const autoColor = sect.dataset.autoColor?.trim().toLowerCase();
+  const autoSize  = sect.dataset.autoSize?.trim().toLowerCase();
+  const autoHandle = sect.dataset.autoProductHandle; // handle-only string or blank
+
+  let product = null;    // active product JSON
+  let variants = [];     // product.variants
+  let currentVariant = null;
+
+  // Open modal helpers
+  const open = () => { modal.hidden = false; document.body.style.overflow = 'hidden'; };
+  const close = () => { modal.hidden = true; document.body.style.overflow = ''; errEl.hidden = true; errEl.textContent=''; };
+
+  backdrop.addEventListener('click', close);
+  closeBtn.addEventListener('click', close);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) close(); });
+
+  // Bind all [+] pins
+  sect.querySelectorAll('.gg-pin').forEach(btn => {
+    btn.addEventListener('click', () => {
+      try {
+        const id = btn.dataset.productJsonId;
+        product = JSON.parse(document.getElementById(id).textContent);
+        buildModal(product);
+        open();
+      } catch(e) { console.error(e); }
+    });
+  });
+
+  function buildModal(p) {
+    titleEl.textContent = p.title;
+    priceEl.innerHTML = Shopify.formatMoney(p.price, window?.Shopify?.money_format || '${{amount}}');
+
+    // description
+    descEl.innerHTML = p.description || '';
+
+    // images
+    gallery.innerHTML = '';
+    const firstMedia = p.media && p.media.length ? p.media[0] : null;
+    const src = firstMedia?.src || p.featured_image?.src || p.images?.[0];
+    if (src) {
+      const img = new Image();
+      img.loading = 'lazy';
+      img.src = typeof src === 'string' ? src : (src?.src || '');
+      gallery.appendChild(img);
+    }
+
+    // variants/options UI
+    variants = p.variants || [];
+    optionsWrap.innerHTML = '';
+    (p.options || []).forEach((opt, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'gg-option';
+      wrap.innerHTML = `<label>${opt.name}</label><select data-opt-index="${i}"></select>`;
+      const sel = wrap.querySelector('select');
+
+      // unique values for this option index
+      const values = [...new Set(variants.map(v => v.options[i]))];
+      values.forEach(val => {
+        const o = document.createElement('option');
+        o.value = val; o.textContent = val;
+        sel.appendChild(o);
+      });
+
+      sel.addEventListener('change', updateVariantFromSelectors);
+      optionsWrap.appendChild(wrap);
+    });
+
+    // initialize variant selection to first available
+    updateVariantFromSelectors(true);
+  }
+
+  function readSelections() {
+    const selections = [];
+    optionsWrap.querySelectorAll('select').forEach(sel => selections.push(sel.value));
+    return selections;
+  }
+
+  function updateVariantFromSelectors(initialize=false) {
+    const picks = readSelections();
+    // find variant that matches all picks
+    let match = variants.find(v => picks.every((val, idx) => v.options[idx] === val));
+    if (!match) {
+      // if not found (e.g., init), pick first available
+      match = variants.find(v => v.available) || variants[0];
+      // sync selectors to this variant
+      if (match && !initialize) {
+        optionsWrap.querySelectorAll('select').forEach((sel, i) => { sel.value = match.options[i]; });
+      }
+    }
+    currentVariant = match || null;
+
+    if (currentVariant) {
+      variantIdInput.value = currentVariant.id;
+      priceEl.innerHTML = Shopify.formatMoney(currentVariant.price, window?.Shopify?.money_format || '${{amount}}');
+    }
+  }
+
+  // ADD TO CART (with auto-add rule)
+  addBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (!currentVariant) return;
+
+    try {
+      addBtn.disabled = true;
+
+      // 1) add chosen variant
+      await fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ items: [{ id: currentVariant.id, quantity: 1 }] })
+      }).then(r => r.json());
+
+      // 2) if rule matches, also add the auto product (by handle)
+      if (autoHandle && optionsWrap) {
+        const colorPick = (readSelections().find(v => v?.toLowerCase() === autoColor) ? autoColor : null) ||
+          (currentVariant.option1?.toLowerCase() === autoColor ? autoColor : null) ||
+          (currentVariant.option2?.toLowerCase() === autoColor ? autoColor : null) ||
+          (currentVariant.option3?.toLowerCase() === autoColor ? autoColor : null);
+
+        const sizePick = (readSelections().find(v => v?.toLowerCase() === autoSize) ? autoSize : null) ||
+          (currentVariant.option1?.toLowerCase() === autoSize ? autoSize : null) ||
+          (currentVariant.option2?.toLowerCase() === autoSize ? autoSize : null) ||
+          (currentVariant.option3?.toLowerCase() === autoSize ? autoSize : null);
+
+        if (colorPick && sizePick) {
+          // fetch product by handle to get its first available variant id
+          const res = await fetch(`/products/${autoHandle}.js`);
+          const ap = await res.json();
+          const autoVar = (ap.variants || []).find(v => v.available) || ap.variants?.[0];
+          if (autoVar?.id) {
+            await fetch('/cart/add.js', {
+              method: 'POST',
+              headers: {'Content-Type':'application/json'},
+              body: JSON.stringify({ items: [{ id: autoVar.id, quantity: 1 }] })
+            }).then(r => r.json());
+          }
+        }
+      }
+
+      // success → close + open cart drawer if theme supports it
+      close();
+      document.documentElement.dispatchEvent(new CustomEvent('cart:refresh', { bubbles: true }));
+      // Some themes listen to this event; otherwise redirect to cart:
+      // window.location.href = '/cart';
+    } catch (err) {
+      console.error(err);
+      errEl.hidden = false;
+      errEl.textContent = 'Could not add to cart. Please try again.';
+    } finally {
+      addBtn.disabled = false;
+    }
+  });
+})();
 {% endjavascript %}
