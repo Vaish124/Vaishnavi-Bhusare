@@ -25,6 +25,17 @@
     },
     "figma-grid": {
       "type": "figma-grid",
+      "blocks": {
+        "product_caaNCF": {
+          "type": "product",
+          "settings": {
+            "product": "dark-winter-jacket"
+          }
+        }
+      },
+      "block_order": [
+        "product_caaNCF"
+      ],
       "settings": {
         "grid_title": "Luxury Essentials",
         "auto_color": "Black",
@@ -34,6 +45,17 @@
     },
     "figma_grid_YRDctt": {
       "type": "figma-grid",
+      "blocks": {
+        "product_9Mya4z": {
+          "type": "product",
+          "settings": {
+            "product": "white-cotton-shirt"
+          }
+        }
+      },
+      "block_order": [
+        "product_9Mya4z"
+      ],
       "settings": {
         "grid_title": "Formal Occasions",
         "auto_color": "Blue",
@@ -43,6 +65,17 @@
     },
     "figma_grid_wnAUFJ": {
       "type": "figma-grid",
+      "blocks": {
+        "product_zcPHzt": {
+          "type": "product",
+          "settings": {
+            "product": "striped-skirt-and-top"
+          }
+        }
+      },
+      "block_order": [
+        "product_zcPHzt"
+      ],
       "settings": {
         "grid_title": "Timeless Style",
         "auto_color": "Black",
@@ -52,6 +85,17 @@
     },
     "figma_grid_FeAkPQ": {
       "type": "figma-grid",
+      "blocks": {
+        "product_6Frz9W": {
+          "type": "product",
+          "settings": {
+            "product": "blue-silk-tuxedo"
+          }
+        }
+      },
+      "block_order": [
+        "product_6Frz9W"
+      ],
       "settings": {
         "grid_title": "Outdoor Adventure Gear",
         "auto_color": "Green",
@@ -61,6 +105,17 @@
     },
     "figma_grid_k7LrM3": {
       "type": "figma-grid",
+      "blocks": {
+        "product_B9n7dx": {
+          "type": "product",
+          "settings": {
+            "product": "longsleeve-cotton-top"
+          }
+        }
+      },
+      "block_order": [
+        "product_B9n7dx"
+      ],
       "settings": {
         "grid_title": "Under $50 Favorites",
         "auto_color": "Red",
@@ -70,6 +125,17 @@
     },
     "figma_grid_EJmkDx": {
       "type": "figma-grid",
+      "blocks": {
+        "product_cEKzrV": {
+          "type": "product",
+          "settings": {
+            "product": "classic-varsity-top"
+          }
+        }
+      },
+      "block_order": [
+        "product_cEKzrV"
+      ],
       "settings": {
         "grid_title": " Classic Varsity Top",
         "auto_color": "Black",
