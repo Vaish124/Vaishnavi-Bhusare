@@ -1,15 +1,12 @@
 {% comment %}
 Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
-- Choose up to 6 products in the editor (blocks)
-- Opens modal with variants pulled from product JSON
-- Adds to cart with fetch /cart/add.js
-- Auto-add “Soft Winter Jacket” if picked variant has Color=Black and Size=Medium
 {% endcomment %}
 
+{% assign auto_p = section.settings.auto_product %}
 <section id="gift-grid" class="gg-wrap"
   data-auto-color="{{ section.settings.auto_color | escape }}"
   data-auto-size="{{ section.settings.auto_size | escape }}"
-  data-auto-product-handle="{{ section.settings.auto_product | default: blank | product_url | split: '/products/' | last }}">
+  data-auto-product-handle="{% if auto_p %}{{ auto_p.handle | escape }}{% endif %}">
   {% if section.settings.grid_title != blank %}
     <h2 class="gg-title">{{ section.settings.grid_title }}</h2>
   {% endif %}
@@ -48,14 +45,12 @@ Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
             </div>
           </div>
 
-          {%- comment -%} Inline JSON for stable, fast access {%- endcomment -%}
           <script type="application/json" id="pjson-{{ block.id }}">{{ p | json }}</script>
         </article>
       {% endif %}
     {% endfor %}
   </div>
 
-  {%- comment -%} Modal {%- endcomment -%}
   <div class="gg-modal" id="ggModal" hidden>
     <div class="gg-backdrop" data-close></div>
     <div class="gg-dialog" role="dialog" aria-modal="true" aria-label="Quick view">
@@ -87,28 +82,25 @@ Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
     { "type": "text", "id": "grid_title", "label": "Grid title", "default": "Holiday Gift Picks" },
     { "type": "text", "id": "auto_color", "label": "Auto-add trigger color", "default": "Black" },
     { "type": "text", "id": "auto_size", "label": "Auto-add trigger size", "default": "Medium" },
-    {
-      "type": "product",
-      "id": "auto_product",
-      "label": "Product to auto-add",
-      "info": "Select “Soft Winter Jacket”"
-    }
+    { "type": "product", "id": "auto_product", "label": "Product to auto-add", "info": "Select “Soft Winter Jacket”" }
   ],
   "blocks": [
     {
       "type": "product",
       "name": "Product",
-      "limit": 6,
       "settings": [
         { "type": "product", "id": "product", "label": "Select product" }
       ]
     }
   ],
-  "presets": [{ "name": "Gift Guide Grid", "blocks": [{ "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }] }]
+  "max_blocks": 6,
+  "presets": [
+    { "name": "Gift Guide Grid", "blocks": [{ "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }] }
+  ]
 }
 {% endschema %}
 
-{% stylesheet %}
+<style>
 .gg-wrap{max-width:1200px;margin:0 auto;padding:24px}
 .gg-title{font-size:clamp(24px,3vw,40px);margin:0 0 16px}
 .gg-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
@@ -136,9 +128,9 @@ Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
 .gg-option{margin:.5rem 0}
 .gg-option label{display:block;font-weight:600;margin-bottom:6px}
 .gg-option select{width:100%;padding:.5rem;border-radius:10px;border:1px solid #ddd}
-{% endstylesheet %}
+</style>
 
-{% javascript %}
+<script>
 (() => {
   const sect = document.currentScript.closest('#gift-grid');
   const modal = sect.querySelector('#ggModal');
@@ -153,15 +145,14 @@ Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
   const addBtn = modal.querySelector('#ggAdd');
   const errEl  = modal.querySelector('#ggError');
 
-  const autoColor = sect.dataset.autoColor?.trim().toLowerCase();
-  const autoSize  = sect.dataset.autoSize?.trim().toLowerCase();
-  const autoHandle = sect.dataset.autoProductHandle; // handle-only string or blank
+  const autoColor = (sect.dataset.autoColor || '').trim().toLowerCase();
+  const autoSize  = (sect.dataset.autoSize || '').trim().toLowerCase();
+  const autoHandle = (sect.dataset.autoProductHandle || '').trim();
 
-  let product = null;    // active product JSON
-  let variants = [];     // product.variants
+  let product = null;
+  let variants = [];
   let currentVariant = null;
 
-  // Open modal helpers
   const open = () => { modal.hidden = false; document.body.style.overflow = 'hidden'; };
   const close = () => { modal.hidden = true; document.body.style.overflow = ''; errEl.hidden = true; errEl.textContent=''; };
 
@@ -169,7 +160,6 @@ Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
   closeBtn.addEventListener('click', close);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) close(); });
 
-  // Bind all [+] pins
   sect.querySelectorAll('.gg-pin').forEach(btn => {
     btn.addEventListener('click', () => {
       try {
@@ -183,33 +173,31 @@ Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
 
   function buildModal(p) {
     titleEl.textContent = p.title;
-    priceEl.innerHTML = Shopify.formatMoney(p.price, window?.Shopify?.money_format || '${{amount}}');
+    try {
+      priceEl.innerHTML = Shopify.formatMoney(p.price, (window.Shopify && Shopify.money_format) || '${{amount}}');
+    } catch(_e){ priceEl.textContent = ''; }
 
-    // description
     descEl.innerHTML = p.description || '';
 
-    // images
     gallery.innerHTML = '';
-    const firstMedia = p.media && p.media.length ? p.media[0] : null;
-    const src = firstMedia?.src || p.featured_image?.src || p.images?.[0];
+    const firstMedia = (p.media && p.media.length ? p.media[0] : null);
+    const src = (firstMedia && firstMedia.src) || (p.featured_image && p.featured_image.src) || (p.images && p.images[0]);
     if (src) {
       const img = new Image();
       img.loading = 'lazy';
-      img.src = typeof src === 'string' ? src : (src?.src || '');
+      img.src = (typeof src === 'string') ? src : (src.src || '');
       gallery.appendChild(img);
     }
 
-    // variants/options UI
     variants = p.variants || [];
     optionsWrap.innerHTML = '';
     (p.options || []).forEach((opt, i) => {
       const wrap = document.createElement('div');
       wrap.className = 'gg-option';
-      wrap.innerHTML = `<label>${opt.name}</label><select data-opt-index="${i}"></select>`;
+      wrap.innerHTML = '<label>'+opt.name+'</label><select data-opt-index="'+i+'"></select>';
       const sel = wrap.querySelector('select');
 
-      // unique values for this option index
-      const values = [...new Set(variants.map(v => v.options[i]))];
+      const values = Array.from(new Set(variants.map(v => v.options[i])));
       values.forEach(val => {
         const o = document.createElement('option');
         o.value = val; o.textContent = val;
@@ -220,24 +208,20 @@ Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
       optionsWrap.appendChild(wrap);
     });
 
-    // initialize variant selection to first available
     updateVariantFromSelectors(true);
   }
 
   function readSelections() {
-    const selections = [];
-    optionsWrap.querySelectorAll('select').forEach(sel => selections.push(sel.value));
-    return selections;
+    const picks = [];
+    optionsWrap.querySelectorAll('select').forEach(sel => picks.push(sel.value));
+    return picks;
   }
 
   function updateVariantFromSelectors(initialize=false) {
     const picks = readSelections();
-    // find variant that matches all picks
     let match = variants.find(v => picks.every((val, idx) => v.options[idx] === val));
     if (!match) {
-      // if not found (e.g., init), pick first available
       match = variants.find(v => v.available) || variants[0];
-      // sync selectors to this variant
       if (match && !initialize) {
         optionsWrap.querySelectorAll('select').forEach((sel, i) => { sel.value = match.options[i]; });
       }
@@ -246,11 +230,12 @@ Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
 
     if (currentVariant) {
       variantIdInput.value = currentVariant.id;
-      priceEl.innerHTML = Shopify.formatMoney(currentVariant.price, window?.Shopify?.money_format || '${{amount}}');
+      try {
+        priceEl.innerHTML = Shopify.formatMoney(currentVariant.price, (window.Shopify && Shopify.money_format) || '${{amount}}');
+      } catch(_e){}
     }
   }
 
-  // ADD TO CART (with auto-add rule)
   addBtn.addEventListener('click', async (e) => {
     e.preventDefault();
     if (!currentVariant) return;
@@ -258,31 +243,24 @@ Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
     try {
       addBtn.disabled = true;
 
-      // 1) add chosen variant
       await fetch('/cart/add.js', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ items: [{ id: currentVariant.id, quantity: 1 }] })
       }).then(r => r.json());
 
-      // 2) if rule matches, also add the auto product (by handle)
-      if (autoHandle && optionsWrap) {
-        const colorPick = (readSelections().find(v => v?.toLowerCase() === autoColor) ? autoColor : null) ||
-          (currentVariant.option1?.toLowerCase() === autoColor ? autoColor : null) ||
-          (currentVariant.option2?.toLowerCase() === autoColor ? autoColor : null) ||
-          (currentVariant.option3?.toLowerCase() === autoColor ? autoColor : null);
+      if (autoHandle) {
+        const picks = readSelections().map(v => (v||'').toLowerCase());
+        const colorMatch = picks.includes(autoColor) ||
+          [currentVariant.option1, currentVariant.option2, currentVariant.option3].some(v => (v||'').toLowerCase() === autoColor);
+        const sizeMatch = picks.includes(autoSize) ||
+          [currentVariant.option1, currentVariant.option2, currentVariant.option3].some(v => (v||'').toLowerCase() === autoSize);
 
-        const sizePick = (readSelections().find(v => v?.toLowerCase() === autoSize) ? autoSize : null) ||
-          (currentVariant.option1?.toLowerCase() === autoSize ? autoSize : null) ||
-          (currentVariant.option2?.toLowerCase() === autoSize ? autoSize : null) ||
-          (currentVariant.option3?.toLowerCase() === autoSize ? autoSize : null);
-
-        if (colorPick && sizePick) {
-          // fetch product by handle to get its first available variant id
-          const res = await fetch(`/products/${autoHandle}.js`);
+        if (colorMatch && sizeMatch) {
+          const res = await fetch('/products/'+autoHandle+'.js');
           const ap = await res.json();
-          const autoVar = (ap.variants || []).find(v => v.available) || ap.variants?.[0];
-          if (autoVar?.id) {
+          const autoVar = (ap.variants || []).find(v => v.available) || (ap.variants && ap.variants[0]);
+          if (autoVar && autoVar.id) {
             await fetch('/cart/add.js', {
               method: 'POST',
               headers: {'Content-Type':'application/json'},
@@ -292,11 +270,8 @@ Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
         }
       }
 
-      // success → close + open cart drawer if theme supports it
       close();
       document.documentElement.dispatchEvent(new CustomEvent('cart:refresh', { bubbles: true }));
-      // Some themes listen to this event; otherwise redirect to cart:
-      // window.location.href = '/cart';
     } catch (err) {
       console.error(err);
       errEl.hidden = false;
@@ -306,4 +281,4 @@ Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
     }
   });
 })();
-{% endjavascript %}
+</script>
