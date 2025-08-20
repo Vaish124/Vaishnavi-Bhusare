@@ -9,22 +9,30 @@
 <section id="gg-grid" class="gg-wrap" 
   data-trigger-color="{{ section.settings.trigger_color | escape }}"
   data-trigger-size="{{ section.settings.trigger_size | escape }}">
+  
+  <!-- Section title coming from theme settings -->
   <h2 class="gg-grid__title">{{ section.settings.grid_title }}</h2>
 
+  <!-- Product Grid -->
   <div class="gg-grid">
     {% for block in section.blocks %}
       {% assign p = block.settings.product %}
       {% if p %}
+        <!-- Individual product card -->
         <article class="gg-card" {{ block.shopify_attributes }}>
           {% if p.featured_media %}
+            <!-- Product thumbnail image -->
             <img src="{{ p.featured_media | image_url: width: 400 }}" alt="{{ p.title | escape }}" class="gg-card__img" loading="lazy">
           {% endif %}
+
+          <!-- Pin button (opens modal for details) -->
           <button class="gg-pin" aria-label="Show {{ p.title | escape }} details" data-product-handle="{{ p.handle }}">＋</button>
 
-          {%- comment -%} Embed product JSON for JS (stable & fast) {%- endcomment -%}
+          <!-- Embed product JSON in script tag for stable & fast access by JS -->
           <script type="application/json" id="prod-{{ block.id }}">{{ p | json }}</script>
         </article>
       {% else %}
+        <!-- Placeholder card if product not selected in block -->
         <article class="gg-card gg-card--placeholder" {{ block.shopify_attributes }}>
           <div class="gg-card__ph">Select a product</div>
         </article>
@@ -32,20 +40,25 @@
     {% endfor %}
   </div>
 
-  <!-- Modal HTML -->
+  <!-- Custom Modal (hidden by default) -->
   <div id="gg-modal" class="gg-modal" style="display: none;">
     <div class="gg-modal__overlay">
       <div class="gg-modal__content">
+        <!-- Close button -->
         <button class="gg-modal__close" aria-label="Close">&times;</button>
         <div class="gg-modal__body">
+          <!-- Left side: product image -->
           <div class="gg-modal__image">
             <img id="gg-modal-img" src="" alt="">
           </div>
+          <!-- Right side: product details -->
           <div class="gg-modal__details">
             <h3 id="gg-modal-title"></h3>
             <p id="gg-modal-price"></p>
             <div id="gg-modal-description"></div>
+            <!-- Variants (color buttons + size dropdown) -->
             <div id="gg-modal-variants"></div>
+            <!-- Add to Cart button -->
             <button id="gg-modal-add-cart" class="gg-add-to-cart">ADD TO CART</button>
           </div>
         </div>
@@ -53,54 +66,57 @@
     </div>
   </div>
 
+  <!-- Auto-add product JSON (optional, only if set in theme editor) -->
   {%- if section.settings.auto_add_product != blank -%}
     <script type="application/json" id="gg-auto-product">{{ section.settings.auto_add_product | json }}</script>
   {%- endif -%}
 
-  <!-- JavaScript -->
+  <!-- JavaScript handling modal logic, variant rendering and cart actions -->
   <script>
   document.addEventListener('DOMContentLoaded', function() {
     console.log('Gift Guide Grid loaded');
     
-    const pins = document.querySelectorAll('.gg-pin');
-    const modal = document.getElementById('gg-modal');
+    const pins = document.querySelectorAll('.gg-pin'); // All pin buttons
+    const modal = document.getElementById('gg-modal'); // Modal reference
     
     console.log('Found pins:', pins.length);
     
+    // Loop over each pin button and add click event
     pins.forEach((pin, index) => {
       pin.addEventListener('click', function(e) {
         e.preventDefault();
         console.log('Pin clicked:', index);
         
-        const productHandle = this.getAttribute('data-product-handle');
+        const productHandle = this.getAttribute('data-product-handle'); // Product handle used to fetch details
         console.log('Product handle:', productHandle);
         
-        // Fetch product data from Shopify
+        // Fetch product data from Shopify product.js endpoint
         fetch(`/products/${productHandle}.js`)
           .then(response => response.json())
           .then(product => {
             console.log('Product data:', product);
             
-            // Populate modal with product data
+            // Populate modal with product info
             document.getElementById('gg-modal-title').textContent = product.title;
             document.getElementById('gg-modal-price').textContent = '$' + (product.price / 100).toFixed(2) + ' CAD';
             document.getElementById('gg-modal-description').innerHTML = product.description;
             
+            // Set product image
             if (product.featured_image) {
               document.getElementById('gg-modal-img').src = product.featured_image;
               document.getElementById('gg-modal-img').alt = product.title;
             }
             
-            // Show variants - Color buttons + Size dropdown + Add to Cart functionality
+            // Build variants UI dynamically (Color buttons + Size dropdown)
             let variantsHtml = '';
             if (product.variants && product.variants.length > 1) {
-              // Get unique colors and sizes
+              // Extract unique sizes and colors from variants
               const sizes = [...new Set(product.variants.map(v => v.option1))].filter(Boolean);
               const colors = [...new Set(product.variants.map(v => v.option2))].filter(Boolean);
               
               variantsHtml = '<div class="variants-section">';
               
-              // Color buttons (like in your screenshot)
+              // Generate color buttons
               if (colors.length > 0) {
                 variantsHtml += '<div class="variant-option">';
                 variantsHtml += '<label>Color:</label>';
@@ -113,7 +129,7 @@
                 variantsHtml += '</div>';
               }
               
-              // Size dropdown
+              // Generate size dropdown
               if (sizes.length > 0) {
                 variantsHtml += '<div class="variant-option">';
                 variantsHtml += '<label for="size-select">Size:</label>';
@@ -130,9 +146,9 @@
             }
             document.getElementById('gg-modal-variants').innerHTML = variantsHtml;
 
-            // Add event listeners for color buttons and Add to Cart
+            // Attach event listeners for color buttons and Add to Cart
             setTimeout(() => {
-              // Color button selection
+              // Handle color selection
               const colorButtons = document.querySelectorAll('.color-btn');
               colorButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -141,7 +157,7 @@
                 });
               });
               
-              // Add to Cart functionality
+              // Add to Cart button click handler
               const addToCartBtn = document.getElementById('gg-modal-add-cart');
               if (addToCartBtn) {
                 addToCartBtn.addEventListener('click', function() {
@@ -153,7 +169,7 @@
                     return;
                   }
                   
-                  // Find the matching variant
+                  // Find variant that matches selected color + size
                   const selectedVariant = product.variants.find(v => 
                     v.option1 === selectedSize && v.option2 === selectedColor
                   );
@@ -162,11 +178,12 @@
                     // Add main product to cart
                     addToCart(selectedVariant.id, 1);
                     
-                    // Auto-add Soft Winter Jacket if conditions match
+                    // Check if auto-add conditions match (based on trigger color/size)
                     const triggerColor = document.querySelector('#gg-grid').getAttribute('data-trigger-color');
                     const triggerSize = document.querySelector('#gg-grid').getAttribute('data-trigger-size');
                     
                     if (selectedColor === triggerColor && selectedSize === triggerSize) {
+                      // If matched, also auto-add extra product
                       const autoProductData = document.getElementById('gg-auto-product');
                       if (autoProductData) {
                         const autoProduct = JSON.parse(autoProductData.textContent);
@@ -176,17 +193,18 @@
                         }
                       }
                     } else {
+                      // Only main product added
                       alert(`Added ${product.title} to cart!`);
                     }
                     
-                    // Close modal
+                    // Close modal after adding to cart
                     document.getElementById('gg-modal').style.display = 'none';
                   }
                 });
               }
             }, 100);
             
-            // Show modal
+            // Finally, show modal
             modal.style.display = 'block';
             console.log('Modal should be visible now');
           })
@@ -196,7 +214,7 @@
       });
     });
     
-    // Close modal
+    // Close modal when clicking close button
     const closeBtn = document.querySelector('.gg-modal__close');
     if (closeBtn) {
       closeBtn.addEventListener('click', function() {
@@ -204,14 +222,14 @@
       });
     }
     
-    // Close modal when clicking outside
+    // Close modal when clicking overlay (outside content)
     modal.addEventListener('click', function(e) {
       if (e.target === modal) {
         modal.style.display = 'none';
       }
     });
 
-    // Add to cart function
+    // Reusable function: add product to cart via AJAX
     function addToCart(variantId, quantity) {
       fetch('/cart/add.js', {
         method: 'POST',
