@@ -200,7 +200,7 @@
       "settings": {
         "collection": "holiday-gift-guide",
         "layout_type": "grid",
-        "carousel_on_mobile": true,
+        "carousel_on_mobile": false,
         "max_products": 6,
         "columns": 3,
         "mobile_columns": "2",
