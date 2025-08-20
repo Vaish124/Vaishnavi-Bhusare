@@ -1,171 +1,177 @@
-/* Grid layout - No gaps, joined products */
-.gg-wrap { margin: 0 auto; padding: 32px 16px; max-width: 1200px; }
-.gg-grid__title { font-size: clamp(24px, 2.5vw, 36px); margin: 0 0 20px; font-weight: 700; }
-.gg-grid {
-  display: grid;
-  gap: 0;
-  grid-template-columns: repeat(3, 1fr);
-  border: 1px solid #ddd;
-  border-radius: 14px;
-  overflow: hidden;
+/* ---------------- GRID WRAPPER + TITLE ---------------- */
+.gg-wrap { 
+  margin: 0 auto;                /* Center the wrapper horizontally */
+  padding: 32px 16px;            /* Spacing around the grid */
+  max-width: 1200px;             /* Limit the grid width */
 }
 
-/* Updated responsive breakpoints - No gaps */
+.gg-grid__title { 
+  font-size: clamp(24px, 2.5vw, 36px); /* Responsive heading font size */
+  margin: 0 0 20px;              /* Space below heading */
+  font-weight: 700;              /* Bold title */
+}
+
+/* ---------------- GRID LAYOUT ---------------- */
+.gg-grid {
+  display: grid;                 /* Use CSS Grid */
+  gap: 0;                        /* No gaps between items */
+  grid-template-columns: repeat(3, 1fr); /* 3 equal columns on desktop */
+  border: 1px solid #ddd;        /* Outer border */
+  border-radius: 14px;           /* Rounded outer corners */
+  overflow: hidden;              /* Hide overflow beyond radius */
+}
+
+/* ---------------- RESPONSIVE GRID ---------------- */
 @media (max-width: 900px){ 
   .gg-grid { 
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on tablets */
     gap: 0;
   }
 }
 
 @media (max-width: 480px){ 
   .gg-grid { 
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on small mobiles */
     gap: 0;
   }
   
   .gg-wrap {
-    padding: 20px 12px;
+    padding: 20px 12px;          /* Reduce padding for small screens */
   }
   
   .gg-grid__title {
-    font-size: 20px;
+    font-size: 20px;             /* Smaller title */
     margin-bottom: 15px;
   }
 }
 
-/* Very small screens */
+/* For very small devices */
 @media (max-width: 320px){ 
-  .gg-grid { 
-    gap: 0;
-  }
+  .gg-grid { gap: 0; }
 }
 
+/* ---------------- GRID CARD ---------------- */
 .gg-card { 
-  position: relative; 
-  border-radius: 0;
-  overflow: hidden; 
-  background: #f6f6f6; 
-  aspect-ratio: 1;
-  border-right: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
+  position: relative;            /* Needed for absolute pin placement */
+  border-radius: 0;              /* Remove rounding between cards */
+  overflow: hidden;              /* Crop overflow inside cards */
+  background: #f6f6f6;           /* Light grey fallback bg */
+  aspect-ratio: 1;               /* Square layout for all cards */
+  border-right: 1px solid #ddd;  /* Divider between columns */
+  border-bottom: 1px solid #ddd; /* Divider between rows */
 }
 
+/* Remove right border from every 3rd card (last in row on desktop) */
 .gg-card:nth-child(3n) {
   border-right: none;
 }
 
+/* Remove bottom border from last row (last 3 items) */
 .gg-card:nth-last-child(-n+3) {
   border-bottom: none;
 }
 
-/* Mobile border adjustments */
+/* ---------------- MOBILE BORDER FIX ---------------- */
 @media (max-width: 900px) {
   .gg-card:nth-child(3n) {
-    border-right: 1px solid #ddd;
+    border-right: 1px solid #ddd; /* Reset because now 2-column grid */
   }
   
   .gg-card:nth-child(2n) {
-    border-right: none;
+    border-right: none;          /* Remove right border for 2nd column */
   }
   
   .gg-card:nth-last-child(-n+2) {
-    border-bottom: none;
+    border-bottom: none;         /* Remove bottom border for last row */
   }
 }
 
+/* ---------------- CARD IMAGE ---------------- */
 .gg-card__img { 
   width: 100%; 
   height: 100%; 
-  object-fit: cover; 
+  object-fit: cover;             /* Fill card without distortion */
   display: block; 
-  object-position: center;
+  object-position: center;       /* Center crop */
 }
 
-.gg-card__ph { display:flex; align-items:center; justify-content:center; height: 100%; color:#777; font-size:14px; }
+.gg-card__ph { 
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  height: 100%; 
+  color:#777; 
+  font-size:14px;                /* Placeholder text if no image */
+}
 
+/* ---------------- PIN BUTTON ---------------- */
 .gg-pin {
-  position: absolute;
-  right: 14px; bottom: 14px;
-  width: 36px; height: 36px; border-radius: 50%;
-  border: 0; background: #111; color: #fff; font-size: 20px; cursor: pointer;
+  position: absolute; 
+  right: 14px; bottom: 14px;     /* Position in bottom-right corner */
+  width: 36px; height: 36px; 
+  border-radius: 50%;            /* Circular button */
+  border: 0; 
+  background: #111; color: #fff; /* Black bg, white icon */
+  font-size: 20px; 
+  cursor: pointer;
   display:flex; align-items:center; justify-content:center;
-  transition: transform .2s ease;
+  transition: transform .2s ease; /* Smooth scale effect */
 }
+
 .gg-pin:hover { transform: scale(1.06); }
 
-/* Modal - Fixed z-index for proper layering */
+/* ---------------- MODAL WRAPPER ---------------- */
 .gg-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 99999;
-  display: none;
+  position: fixed; 
+  top: 0; left: 0;               /* Full screen overlay */
+  width: 100%; height: 100%; 
+  z-index: 99999;                /* Stay on top of everything */
+  display: none;                 /* Hidden by default */
 }
 
 .gg-modal__overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
+  position: fixed; inset: 0;     /* Cover entire viewport */
+  background: rgba(0,0,0,0.6);   /* Semi-transparent backdrop */
   z-index: 99998;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;                 /* Space around modal */
 }
 
 .gg-modal__content {
-  background: #fff;
-  border-radius: 16px;
+  background: #fff;              /* White modal box */
+  border-radius: 16px; 
   overflow: hidden;
   z-index: 99999;
-  max-width: 500px;
-  width: 90%;
-  max-height: 85vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0,0,0,.2);
+  max-width: 500px; width: 90%;  /* Responsive sizing */
+  max-height: 85vh;              /* Limit modal height */
+  overflow-y: auto;              /* Scroll if too tall */
+  box-shadow: 0 10px 40px rgba(0,0,0,.2); /* Drop shadow */
   position: relative;
 }
 
-.gg-modal__body {
-  display: block;
-  padding: 20px;
-}
+.gg-modal__body { padding: 20px; }
 
-.gg-modal__image {
-  width: 100%;
-  margin-bottom: 20px;
-}
+.gg-modal__image { width: 100%; margin-bottom: 20px; }
 
 .gg-modal__image img {
-  width: 100%;
-  height: 250px;
-  object-fit: cover;
+  width: 100%; 
+  height: 250px; 
+  object-fit: cover; 
   border-radius: 10px;
   display: block;
 }
 
-.gg-modal__details {
-  width: 100%;
-}
+.gg-modal__details { width: 100%; }
 
+/* Close button inside modal */
 .gg-modal__close {
-  position: absolute;
-  top: 15px;
-  right: 15px;
+  position: absolute; top: 15px; right: 15px;
   border: 0;
   background: rgba(255,255,255,0.9);
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  font-size: 18px;
-  cursor: pointer;
+  width: 30px; height: 30px; border-radius: 50%;
+  font-size: 18px; cursor: pointer;
   z-index: 100000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
 }
 
 .gg-modal__close:hover {
@@ -173,7 +179,7 @@
   opacity: 0.8;
 }
 
-/* Modal Content Styles */
+/* ---------------- MODAL CONTENT STYLES ---------------- */
 #gg-modal-title {
   margin: 0 0 8px;
   font-size: 24px;
@@ -192,11 +198,9 @@
   line-height: 1.5;
 }
 
-#gg-modal-variants {
-  margin-bottom: 20px;
-}
+#gg-modal-variants { margin-bottom: 20px; }
 
-/* Color buttons styling */
+/* ---------------- VARIANT BUTTONS ---------------- */
 .color-buttons {
   display: flex;
   gap: 8px;
@@ -216,9 +220,7 @@
   min-width: 60px;
 }
 
-.color-btn:hover {
-  border-color: #333;
-}
+.color-btn:hover { border-color: #333; }
 
 .color-btn.selected {
   background: #333;
@@ -226,10 +228,8 @@
   border-color: #333;
 }
 
-/* Variant dropdowns styling */
-.variant-option {
-  margin-bottom: 15px;
-}
+/* ---------------- VARIANT DROPDOWNS ---------------- */
+.variant-option { margin-bottom: 15px; }
 
 .variant-option label {
   display: block;
@@ -256,38 +256,33 @@
   outline: none;
 }
 
+/* ---------------- ADD TO CART BUTTON ---------------- */
 #gg-modal-add-cart {
   display: inline-block;
   padding: 12px 18px;
-  border-radius: 999px;
-  background: #111;
-  color: #fff;
-  border: 0;
-  cursor: pointer;
+  border-radius: 999px;          /* Pill button */
+  background: #111; color: #fff;
+  border: 0; cursor: pointer;
   font-weight: 600;
-  width: 100%;
+  width: 100%;                   /* Full width button */
   transition: transform .18s ease, box-shadow .18s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 #gg-modal-add-cart:hover {
-  transform: translateY(-1px);
+  transform: translateY(-1px);   /* Slight lift on hover */
   box-shadow: 0 6px 16px rgba(0,0,0,.15);
 }
 
-/* Mobile responsive */
+/* ---------------- MOBILE MODAL TWEAKS ---------------- */
 @media(max-width: 768px){
   .gg-modal__content {
     max-width: 95%;
     margin: 10px;
   }
   
-  .gg-modal__body {
-    padding: 15px;
-  }
+  .gg-modal__body { padding: 15px; }
   
-  .gg-modal__image img {
-    height: 200px;
-  }
+  .gg-modal__image img { height: 200px; }
 }
