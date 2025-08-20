@@ -216,10 +216,67 @@
         "padding-block-start": 48,
         "padding-block-end": 48
       }
+    },
+    "figma_grid_QtdftC": {
+      "type": "figma-grid",
+      "blocks": {
+        "product_kbBL8C": {
+          "type": "product",
+          "settings": {
+            "product": ""
+          }
+        },
+        "product_NGBkwW": {
+          "type": "product",
+          "settings": {
+            "product": ""
+          }
+        },
+        "product_w69Hhj": {
+          "type": "product",
+          "settings": {
+            "product": ""
+          }
+        },
+        "product_pBi4jU": {
+          "type": "product",
+          "settings": {
+            "product": ""
+          }
+        },
+        "product_tdAK9i": {
+          "type": "product",
+          "settings": {
+            "product": ""
+          }
+        },
+        "product_WWJqVz": {
+          "type": "product",
+          "settings": {
+            "product": ""
+          }
+        }
+      },
+      "block_order": [
+        "product_kbBL8C",
+        "product_NGBkwW",
+        "product_w69Hhj",
+        "product_pBi4jU",
+        "product_tdAK9i",
+        "product_WWJqVz"
+      ],
+      "name": "Gift Guide Grid",
+      "settings": {
+        "grid_title": "Tisso vison in the wild",
+        "trigger_color": "Black",
+        "trigger_size": "Medium",
+        "auto_add_product": ""
+      }
     }
   },
   "order": [
     "figma-banner",
-    "product_list_hFxDEy"
+    "product_list_hFxDEy",
+    "figma_grid_QtdftC"
   ]
 }
