@@ -17,9 +17,9 @@
       {% if p %}
         <article class="gg-card" {{ block.shopify_attributes }}>
           {% if p.featured_media %}
-            {{ p | media_image: class: 'gg-card__img', loading: 'lazy' }}
+            <img src="{{ p.featured_media | image_url: width: 400 }}" alt="{{ p.title | escape }}" class="gg-card__img" loading="lazy">
           {% endif %}
-          <button class="gg-pin" aria-label="Show {{ p.title | escape }} details" data-product-json-id="prod-{{ block.id }}">＋</button>
+          <button class="gg-pin" aria-label="Show {{ p.title | escape }} details" data-product-handle="{{ p.handle }}">＋</button>
 
           {%- comment -%} Embed product JSON for JS (stable & fast) {%- endcomment -%}
           <script type="application/json" id="prod-{{ block.id }}">{{ p | json }}</script>
@@ -32,7 +32,7 @@
     {% endfor %}
   </div>
 
-  <!-- ADD THIS MODAL HTML AFTER THE CLOSING </div> OF gg-grid -->
+  <!-- Modal HTML -->
   <div id="gg-modal" class="gg-modal" style="display: none;">
     <div class="gg-modal__overlay">
       <div class="gg-modal__content">
@@ -57,46 +57,68 @@
     <script type="application/json" id="gg-auto-product">{{ section.settings.auto_add_product | json }}</script>
   {%- endif -%}
 
-  <!-- ADD THIS JAVASCRIPT BEFORE THE CLOSING </section> -->
+  <!-- JavaScript -->
   <script>
   document.addEventListener('DOMContentLoaded', function() {
+    console.log('Gift Guide Grid loaded');
+    
     const pins = document.querySelectorAll('.gg-pin');
     const modal = document.getElementById('gg-modal');
     
-    pins.forEach(pin => {
-      pin.addEventListener('click', function() {
-        const productJsonId = this.getAttribute('data-product-json-id');
-        const productData = JSON.parse(document.getElementById(productJsonId).textContent);
+    console.log('Found pins:', pins.length);
+    
+    pins.forEach((pin, index) => {
+      pin.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Pin clicked:', index);
         
-        // Populate modal with product data
-        document.getElementById('gg-modal-title').textContent = productData.title;
-        document.getElementById('gg-modal-price').textContent = productData.price_min + ' CAD';
-        document.getElementById('gg-modal-description').innerHTML = productData.description;
+        const productHandle = this.getAttribute('data-product-handle');
+        console.log('Product handle:', productHandle);
         
-        if (productData.featured_media) {
-          document.getElementById('gg-modal-img').src = productData.featured_media.preview_image.src;
-        }
-        
-        // Show variants
-        let variantsHtml = '';
-        if (productData.variants && productData.variants.length > 1) {
-          variantsHtml = '<div class="variants-section">';
-          productData.variants.forEach(variant => {
-            variantsHtml += `<button class="variant-btn" data-variant-id="${variant.id}">${variant.title} - ${variant.price} CAD</button>`;
+        // Fetch product data from Shopify
+        fetch(`/products/${productHandle}.js`)
+          .then(response => response.json())
+          .then(product => {
+            console.log('Product data:', product);
+            
+            // Populate modal with product data
+            document.getElementById('gg-modal-title').textContent = product.title;
+            document.getElementById('gg-modal-price').textContent = '$' + (product.price / 100).toFixed(2) + ' CAD';
+            document.getElementById('gg-modal-description').innerHTML = product.description;
+            
+            if (product.featured_image) {
+              document.getElementById('gg-modal-img').src = product.featured_image;
+              document.getElementById('gg-modal-img').alt = product.title;
+            }
+            
+            // Show variants
+            let variantsHtml = '';
+            if (product.variants && product.variants.length > 1) {
+              variantsHtml = '<div class="variants-section"><h4>Options:</h4>';
+              product.variants.forEach(variant => {
+                variantsHtml += `<button class="variant-btn" data-variant-id="${variant.id}">${variant.title} - $${(variant.price / 100).toFixed(2)} CAD</button>`;
+              });
+              variantsHtml += '</div>';
+            }
+            document.getElementById('gg-modal-variants').innerHTML = variantsHtml;
+            
+            // Show modal
+            modal.style.display = 'block';
+            console.log('Modal should be visible now');
+          })
+          .catch(error => {
+            console.error('Error fetching product:', error);
           });
-          variantsHtml += '</div>';
-        }
-        document.getElementById('gg-modal-variants').innerHTML = variantsHtml;
-        
-        // Show modal
-        modal.style.display = 'block';
       });
     });
     
     // Close modal
-    document.querySelector('.gg-modal__close').addEventListener('click', function() {
-      modal.style.display = 'none';
-    });
+    const closeBtn = document.querySelector('.gg-modal__close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+      });
+    }
     
     // Close modal when clicking outside
     modal.addEventListener('click', function(e) {
