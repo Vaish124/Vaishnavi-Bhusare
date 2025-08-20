@@ -1,0 +1,60 @@
+
+{% comment %}
+  Figma Banner (from scratch)
+  - All styles in assets/figma.css
+  - Scripts in assets/figma.js
+  - No Dawn components reused
+{% endcomment %}
+
+{{ 'figma.css' | asset_url | stylesheet_tag }}
+{{ 'figma.js'  | asset_url | script_tag }}
+
+<section id="gg-banner" class="gg-wrap">
+  <div class="gg-topbar">
+    <div class="gg-topbar__msg">{{ section.settings.announcement }}</div>
+    <a class="gg-btn gg-btn--ghost gg-btn--arrow" href="{{ section.settings.cta_top_link | default: '#' }}">
+      <span>{{ section.settings.cta_top_label }}</span>
+      <span class="gg-arrow" aria-hidden="true">→</span>
+    </a>
+  </div>
+
+  <div class="gg-hero">
+    <div class="gg-hero__copy">
+      <h1 class="gg-hero__title">{{ section.settings.hero_heading }}</h1>
+      <p class="gg-hero__sub">{{ section.settings.hero_sub }}</p>
+      <a class="gg-btn gg-btn--solid gg-btn--arrow" href="{{ section.settings.cta_main_link | default: '#' }}">
+        <span>{{ section.settings.cta_main_label }}</span>
+        <span class="gg-arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    {% if section.settings.hero_image %}
+      <img
+        class="gg-hero__img"
+        src="{{ section.settings.hero_image | image_url: width: 2000 }}"
+        alt="{{ section.settings.hero_heading | escape }}">
+    {% endif %}
+  </div>
+
+  <div class="gg-strapline">{{ section.settings.strapline }}</div>
+</section>
+
+{% schema %}
+{
+  "name": "Gift Guide Banner",
+  "settings": [
+    { "type": "text", "id": "announcement", "label": "Top announcement", "default": "Find the ideal gift for your loved ones." },
+    { "type": "text", "id": "cta_top_label", "label": "Top button label", "default": "CHOOSE GIFT →" },
+    { "type": "url",  "id": "cta_top_link", "label": "Top button link" },
+
+    { "type": "text", "id": "hero_heading", "label": "Hero heading", "default": "The Gift Guide" },
+    { "type": "textarea", "id": "hero_sub", "label": "Hero subcopy", "default": "Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season." },
+    { "type": "text", "id": "cta_main_label", "label": "Main CTA label", "default": "SHOP NOW" },
+    { "type": "url",  "id": "cta_main_link", "label": "Main CTA link" },
+
+    { "type": "image_picker", "id": "hero_image", "label": "Hero illustration/image" },
+    { "type": "text", "id": "strapline", "label": "Bottom strapline", "default": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL" }
+  ],
+  "presets": [{ "name": "Gift Guide Banner" }]
+}
+{% endschema %}

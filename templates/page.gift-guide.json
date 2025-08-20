@@ -1,0 +1,87 @@
+/* 
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {                           /* All theme sections are defined here */
+    "figma-banner": {                     /* Section: Banner component */
+      "type": "figma-banner",             /* Section type = figma-banner */
+      "settings": {                       /* Configurable banner settings */
+        "announcement": "Find the perfect gift for every occasion 🎁",              /* Top announcement text */
+        "cta_top_label": "Explore Gifts",                   /* Label for top CTA button */
+        "cta_top_link": "/collections/gift-guide",         /* Link for top CTA button */
+        "hero_heading": "",                                /* Main heading text (empty here) */
+        "hero_sub": "Discover handpicked gifts that bring joy and love this festive season.", /* Subheading below banner */
+        "cta_main_label": "Start Gifting", /* Main CTA button label */
+        "cta_main_link": "/collections/gift-guide", /* Main CTA button link */
+        "hero_image": "shopify://shop_images/banner-image-holiday-gifting-themed.png", /* Banner background image */
+        "strapline": "Free shipping & easy returns on all gifts" /* Short tagline shown below */
+      }
+    },
+    "figma_grid_QtdftC": {                /* Section: Product Grid component */
+      "type": "figma-grid",               /* Section type = figma-grid */
+      "blocks": {                         /* Defines product blocks in grid */
+        "product_kbBL8C": {               /* Block ID (auto-generated) */
+          "type": "product",              /* Block type = product */
+          "settings": {                   
+            "product": "black-leather-bag" /* Handle of product assigned to this block */
+          }
+        },
+        "product_NGBkwW": {               /* Another product block */
+          "type": "product",
+          "settings": {
+            "product": "classic-varsity-top"
+          }
+        },
+        "product_w69Hhj": {
+          "type": "product",
+          "settings": {
+            "product": "floral-white-top"
+          }
+        },
+        "product_pBi4jU": {
+          "type": "product",
+          "settings": {
+            "product": "dark-winter-jacket"
+          }
+        },
+        "product_tdAK9i": {
+          "type": "product",
+          "settings": {
+            "product": "navy-sport-jacket"
+          }
+        },
+        "product_WWJqVz": {
+          "type": "product",
+          "settings": {
+            "product": "formal-white-shirt"
+          }
+        }
+      },
+      "block_order": [                     /* Order of products in grid */
+        "product_kbBL8C",
+        "product_NGBkwW",
+        "product_w69Hhj",
+        "product_pBi4jU",
+        "product_tdAK9i",
+        "product_WWJqVz"
+      ],
+      "name": "Gift Guide Grid",           /* Display name of this grid section */
+      "settings": {                        /* Grid-specific settings */
+        "grid_title": "Tisso vison in the wild", /* Title shown above grid */
+        "trigger_color": "Black",          /* Condition: color trigger for upsell */
+        "trigger_size": "Medium",          /* Condition: size trigger for upsell */
+        "auto_add_product": ""             /* Auto-added product handle (empty now) */
+      }
+    }
+  },
+  "order": [                               /* Defines order of sections on page */
+    "figma-banner",                        /* Banner appears first */
+    "figma_grid_QtdftC"                    /* Product grid appears after banner */
+  ]
+}
