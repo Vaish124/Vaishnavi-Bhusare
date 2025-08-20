@@ -1,284 +1,133 @@
 {% comment %}
-Gift Guide – 6-card grid with quick view + AJAX cart + auto-add rule
+  Figma Grid (from scratch)
+  - Six product blocks with "pins" that open a custom modal
+  - Variants rendered dynamically
+  - Add-to-cart via AJAX fetch
+  - Optional "auto add" product when conditions match
 {% endcomment %}
 
-{% assign auto_p = section.settings.auto_product %}
-<section id="gift-grid" class="gg-wrap"
-  data-auto-color="{{ section.settings.auto_color | escape }}"
-  data-auto-size="{{ section.settings.auto_size | escape }}"
-  data-auto-product-handle="{% if auto_p %}{{ auto_p.handle | escape }}{% endif %}">
-  {% if section.settings.grid_title != blank %}
-    <h2 class="gg-title">{{ section.settings.grid_title }}</h2>
-  {% endif %}
+<section id="gg-grid" class="gg-wrap" 
+  data-trigger-color="{{ section.settings.trigger_color | escape }}"
+  data-trigger-size="{{ section.settings.trigger_size | escape }}">
+  <h2 class="gg-grid__title">{{ section.settings.grid_title }}</h2>
 
   <div class="gg-grid">
     {% for block in section.blocks %}
       {% assign p = block.settings.product %}
       {% if p %}
         <article class="gg-card" {{ block.shopify_attributes }}>
-          <button class="gg-pin" type="button" aria-label="Quick view {{ p.title | escape }}" data-product-json-id="pjson-{{ block.id }}">＋</button>
+          {% if p.featured_media %}
+            {{ p | media_image: class: 'gg-card__img', loading: 'lazy' }}
+          {% endif %}
+          <button class="gg-pin" aria-label="Show {{ p.title | escape }} details" data-product-json-id="prod-{{ block.id }}">＋</button>
 
-          <a href="{{ p.url }}" class="gg-imglink" aria-label="{{ p.title | escape }}">
-            {% if p.featured_media %}
-              {{ p.featured_media
-                | image_url: width: 1200
-                | image_tag: class: 'gg-img', loading: 'lazy', alt: p.title }}
-            {% elsif p.featured_image %}
-              {{ p.featured_image
-                | image_url: width: 1200
-                | image_tag: class: 'gg-img', loading: 'lazy', alt: p.title }}
-            {% else %}
-              <div class="gg-ph">No image</div>
-            {% endif %}
-          </a>
-
-          <div class="gg-meta">
-            <h3 class="gg-name">{{ p.title }}</h3>
-            <div class="gg-price">
-              {%- assign minp = p.price_min | default: p.price -%}
-              {%- if p.compare_at_price_max > minp -%}
-                <span class="gg-price__sale">{{ minp | money }}</span>
-                <s class="gg-price__compare">{{ p.compare_at_price_max | money }}</s>
-              {%- else -%}
-                <span>{{ minp | money }}</span>
-              {%- endif -%}
-            </div>
-          </div>
-
-          <script type="application/json" id="pjson-{{ block.id }}">{{ p | json }}</script>
+          {%- comment -%} Embed product JSON for JS (stable & fast) {%- endcomment -%}
+          <script type="application/json" id="prod-{{ block.id }}">{{ p | json }}</script>
+        </article>
+      {% else %}
+        <article class="gg-card gg-card--placeholder" {{ block.shopify_attributes }}>
+          <div class="gg-card__ph">Select a product</div>
         </article>
       {% endif %}
     {% endfor %}
   </div>
 
-  <div class="gg-modal" id="ggModal" hidden>
-    <div class="gg-backdrop" data-close></div>
-    <div class="gg-dialog" role="dialog" aria-modal="true" aria-label="Quick view">
-      <button class="gg-close" data-close aria-label="Close">×</button>
-
-      <div class="gg-body">
-        <div class="gg-gallery" id="ggGallery"></div>
-        <div class="gg-info">
-          <h3 id="ggTitle"></h3>
-          <div id="ggPrice"></div>
-          <div id="ggDesc" class="rte"></div>
-
-          <form id="ggForm">
-            <div id="ggOptions"></div>
-            <input type="hidden" name="id" id="ggVariantId" />
-            <button type="submit" class="gg-btn" id="ggAdd">ADD TO CART</button>
-          </form>
-          <div id="ggError" class="gg-error" hidden></div>
+  <!-- ADD THIS MODAL HTML AFTER THE CLOSING </div> OF gg-grid -->
+  <div id="gg-modal" class="gg-modal" style="display: none;">
+    <div class="gg-modal__overlay">
+      <div class="gg-modal__content">
+        <button class="gg-modal__close" aria-label="Close">&times;</button>
+        <div class="gg-modal__body">
+          <div class="gg-modal__image">
+            <img id="gg-modal-img" src="" alt="">
+          </div>
+          <div class="gg-modal__details">
+            <h3 id="gg-modal-title"></h3>
+            <p id="gg-modal-price"></p>
+            <div id="gg-modal-description"></div>
+            <div id="gg-modal-variants"></div>
+            <button id="gg-modal-add-cart" class="gg-add-to-cart">Add to Cart</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
+  {%- if section.settings.auto_add_product != blank -%}
+    <script type="application/json" id="gg-auto-product">{{ section.settings.auto_add_product | json }}</script>
+  {%- endif -%}
+
+  <!-- ADD THIS JAVASCRIPT BEFORE THE CLOSING </section> -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const pins = document.querySelectorAll('.gg-pin');
+    const modal = document.getElementById('gg-modal');
+    
+    pins.forEach(pin => {
+      pin.addEventListener('click', function() {
+        const productJsonId = this.getAttribute('data-product-json-id');
+        const productData = JSON.parse(document.getElementById(productJsonId).textContent);
+        
+        // Populate modal with product data
+        document.getElementById('gg-modal-title').textContent = productData.title;
+        document.getElementById('gg-modal-price').textContent = productData.price_min + ' CAD';
+        document.getElementById('gg-modal-description').innerHTML = productData.description;
+        
+        if (productData.featured_media) {
+          document.getElementById('gg-modal-img').src = productData.featured_media.preview_image.src;
+        }
+        
+        // Show variants
+        let variantsHtml = '';
+        if (productData.variants && productData.variants.length > 1) {
+          variantsHtml = '<div class="variants-section">';
+          productData.variants.forEach(variant => {
+            variantsHtml += `<button class="variant-btn" data-variant-id="${variant.id}">${variant.title} - ${variant.price} CAD</button>`;
+          });
+          variantsHtml += '</div>';
+        }
+        document.getElementById('gg-modal-variants').innerHTML = variantsHtml;
+        
+        // Show modal
+        modal.style.display = 'block';
+      });
+    });
+    
+    // Close modal
+    document.querySelector('.gg-modal__close').addEventListener('click', function() {
+      modal.style.display = 'none';
+    });
+    
+    // Close modal when clicking outside
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  });
+  </script>
 </section>
 
 {% schema %}
 {
   "name": "Gift Guide Grid",
   "settings": [
-    { "type": "text", "id": "grid_title", "label": "Grid title", "default": "Holiday Gift Picks" },
-    { "type": "text", "id": "auto_color", "label": "Auto-add trigger color", "default": "Black" },
-    { "type": "text", "id": "auto_size", "label": "Auto-add trigger size", "default": "Medium" },
-    { "type": "product", "id": "auto_product", "label": "Product to auto-add", "info": "Select “Soft Winter Jacket”" }
+    { "type": "text", "id": "grid_title", "label": "Grid title", "default": "Tisso vison in the wild" },
+    { "type": "text", "id": "trigger_color", "label": "Auto-add trigger color value", "default": "Black" },
+    { "type": "text", "id": "trigger_size", "label": "Auto-add trigger size value", "default": "Medium" },
+    { "type": "product", "id": "auto_add_product", "label": "Product to auto-add when the trigger variant is added", "info": "Optional. Example: Soft Winter Jacket" }
   ],
   "blocks": [
     {
       "type": "product",
       "name": "Product",
+      "limit": 6,
       "settings": [
-        { "type": "product", "id": "product", "label": "Select product" }
+        { "type": "product", "id": "product", "label": "Product" }
       ]
     }
   ],
   "max_blocks": 6,
-  "presets": [
-    { "name": "Gift Guide Grid", "blocks": [{ "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }] }
-  ]
+  "presets": [{ "name": "Gift Guide Grid", "blocks": [{ "type": "product" },{ "type": "product" },{ "type": "product" },{ "type": "product" },{ "type": "product" },{ "type": "product" }] }]
 }
 {% endschema %}
-
-<style>
-.gg-wrap{max-width:1200px;margin:0 auto;padding:24px}
-.gg-title{font-size:clamp(24px,3vw,40px);margin:0 0 16px}
-.gg-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
-@media(max-width:900px){.gg-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.gg-grid{grid-template-columns:1fr}}
-.gg-card{position:relative;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.gg-img{display:block;width:100%;height:auto}
-.gg-pin{position:absolute;right:10px;top:10px;border:0;background:#111;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer}
-.gg-meta{padding:12px}
-.gg-name{margin:0 0 6px;font-size:18px}
-.gg-price{font-weight:600}
-.gg-price__compare{opacity:.6;margin-left:6px}
-.gg-ph{aspect-ratio:4/3;background:#f2f2f2;display:grid;place-items:center}
-
-.gg-modal[hidden]{display:none}
-.gg-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45)}
-.gg-dialog{position:fixed;inset:6% 50% auto 50%;transform:translate(-50%,0);width:min(980px,94vw);background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.25)}
-.gg-close{position:absolute;right:12px;top:8px;border:0;background:transparent;font-size:28px;cursor:pointer}
-.gg-body{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:24px}
-@media(max-width:900px){.gg-body{grid-template-columns:1fr}}
-.gg-gallery img{width:100%;height:auto;border-radius:12px}
-.gg-info h3{margin:.25rem 0}
-.gg-btn{display:inline-block;padding:.85rem 1.2rem;border-radius:999px;background:#111;color:#fff;border:0;cursor:pointer}
-.gg-error{margin-top:.5rem;color:#b00020}
-.gg-option{margin:.5rem 0}
-.gg-option label{display:block;font-weight:600;margin-bottom:6px}
-.gg-option select{width:100%;padding:.5rem;border-radius:10px;border:1px solid #ddd}
-</style>
-
-<script>
-(() => {
-  const sect = document.currentScript.closest('#gift-grid');
-  const modal = sect.querySelector('#ggModal');
-  const backdrop = modal.querySelector('[data-close]');
-  const closeBtn = modal.querySelector('.gg-close');
-  const titleEl = modal.querySelector('#ggTitle');
-  const priceEl = modal.querySelector('#ggPrice');
-  const descEl  = modal.querySelector('#ggDesc');
-  const gallery = modal.querySelector('#ggGallery');
-  const optionsWrap = modal.querySelector('#ggOptions');
-  const variantIdInput = modal.querySelector('#ggVariantId');
-  const addBtn = modal.querySelector('#ggAdd');
-  const errEl  = modal.querySelector('#ggError');
-
-  const autoColor = (sect.dataset.autoColor || '').trim().toLowerCase();
-  const autoSize  = (sect.dataset.autoSize || '').trim().toLowerCase();
-  const autoHandle = (sect.dataset.autoProductHandle || '').trim();
-
-  let product = null;
-  let variants = [];
-  let currentVariant = null;
-
-  const open = () => { modal.hidden = false; document.body.style.overflow = 'hidden'; };
-  const close = () => { modal.hidden = true; document.body.style.overflow = ''; errEl.hidden = true; errEl.textContent=''; };
-
-  backdrop.addEventListener('click', close);
-  closeBtn.addEventListener('click', close);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) close(); });
-
-  sect.querySelectorAll('.gg-pin').forEach(btn => {
-    btn.addEventListener('click', () => {
-      try {
-        const id = btn.dataset.productJsonId;
-        product = JSON.parse(document.getElementById(id).textContent);
-        buildModal(product);
-        open();
-      } catch(e) { console.error(e); }
-    });
-  });
-
-  function buildModal(p) {
-    titleEl.textContent = p.title;
-    try {
-      priceEl.innerHTML = Shopify.formatMoney(p.price, (window.Shopify && Shopify.money_format) || '${{amount}}');
-    } catch(_e){ priceEl.textContent = ''; }
-
-    descEl.innerHTML = p.description || '';
-
-    gallery.innerHTML = '';
-    const firstMedia = (p.media && p.media.length ? p.media[0] : null);
-    const src = (firstMedia && firstMedia.src) || (p.featured_image && p.featured_image.src) || (p.images && p.images[0]);
-    if (src) {
-      const img = new Image();
-      img.loading = 'lazy';
-      img.src = (typeof src === 'string') ? src : (src.src || '');
-      gallery.appendChild(img);
-    }
-
-    variants = p.variants || [];
-    optionsWrap.innerHTML = '';
-    (p.options || []).forEach((opt, i) => {
-      const wrap = document.createElement('div');
-      wrap.className = 'gg-option';
-      wrap.innerHTML = '<label>'+opt.name+'</label><select data-opt-index="'+i+'"></select>';
-      const sel = wrap.querySelector('select');
-
-      const values = Array.from(new Set(variants.map(v => v.options[i])));
-      values.forEach(val => {
-        const o = document.createElement('option');
-        o.value = val; o.textContent = val;
-        sel.appendChild(o);
-      });
-
-      sel.addEventListener('change', updateVariantFromSelectors);
-      optionsWrap.appendChild(wrap);
-    });
-
-    updateVariantFromSelectors(true);
-  }
-
-  function readSelections() {
-    const picks = [];
-    optionsWrap.querySelectorAll('select').forEach(sel => picks.push(sel.value));
-    return picks;
-  }
-
-  function updateVariantFromSelectors(initialize=false) {
-    const picks = readSelections();
-    let match = variants.find(v => picks.every((val, idx) => v.options[idx] === val));
-    if (!match) {
-      match = variants.find(v => v.available) || variants[0];
-      if (match && !initialize) {
-        optionsWrap.querySelectorAll('select').forEach((sel, i) => { sel.value = match.options[i]; });
-      }
-    }
-    currentVariant = match || null;
-
-    if (currentVariant) {
-      variantIdInput.value = currentVariant.id;
-      try {
-        priceEl.innerHTML = Shopify.formatMoney(currentVariant.price, (window.Shopify && Shopify.money_format) || '${{amount}}');
-      } catch(_e){}
-    }
-  }
-
-  addBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    if (!currentVariant) return;
-
-    try {
-      addBtn.disabled = true;
-
-      await fetch('/cart/add.js', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ items: [{ id: currentVariant.id, quantity: 1 }] })
-      }).then(r => r.json());
-
-      if (autoHandle) {
-        const picks = readSelections().map(v => (v||'').toLowerCase());
-        const colorMatch = picks.includes(autoColor) ||
-          [currentVariant.option1, currentVariant.option2, currentVariant.option3].some(v => (v||'').toLowerCase() === autoColor);
-        const sizeMatch = picks.includes(autoSize) ||
-          [currentVariant.option1, currentVariant.option2, currentVariant.option3].some(v => (v||'').toLowerCase() === autoSize);
-
-        if (colorMatch && sizeMatch) {
-          const res = await fetch('/products/'+autoHandle+'.js');
-          const ap = await res.json();
-          const autoVar = (ap.variants || []).find(v => v.available) || (ap.variants && ap.variants[0]);
-          if (autoVar && autoVar.id) {
-            await fetch('/cart/add.js', {
-              method: 'POST',
-              headers: {'Content-Type':'application/json'},
-              body: JSON.stringify({ items: [{ id: autoVar.id, quantity: 1 }] })
-            }).then(r => r.json());
-          }
-        }
-      }
-
-      close();
-      document.documentElement.dispatchEvent(new CustomEvent('cart:refresh', { bubbles: true }));
-    } catch (err) {
-      console.error(err);
-      errEl.hidden = false;
-      errEl.textContent = 'Could not add to cart. Please try again.';
-    } finally {
-      addBtn.disabled = false;
-    }
-  });
-})();
-</script>
