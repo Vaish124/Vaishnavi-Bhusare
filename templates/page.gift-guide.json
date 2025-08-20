@@ -18,7 +18,7 @@
         "hero_heading": "",
         "hero_sub": "Discover handpicked gifts that bring joy and love this festive season.",
         "cta_main_label": "Start Gifting",
-        "cta_main_link": "/collections/gift-guide",
+        "cta_main_link": "shopify://collections/gifts-under-999",
         "hero_image": "shopify://shop_images/banner-image-holiday-gifting-themed.png",
         "strapline": "Free shipping & easy returns on all gifts"
       }
