@@ -29,6 +29,10 @@
     min-height: 200px;
   }
   
+  .gg-card__img {
+    height: 200px;
+  }
+  
   .gg-grid__title {
     font-size: 20px;
     margin-bottom: 15px;
@@ -46,8 +50,25 @@
   }
 }
 
-.gg-card { position: relative; border-radius: 14px; overflow: hidden; background: #f6f6f6; min-height: 260px; }
-.gg-card__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gg-card { 
+  position: relative; 
+  border-radius: 14px; 
+  overflow: hidden; 
+  background: #f6f6f6; 
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gg-card__img { 
+  width: 100%; 
+  height: 260px; 
+  object-fit: cover; 
+  display: block; 
+  object-position: center;
+}
+
 .gg-card__ph { display:flex; align-items:center; justify-content:center; height: 220px; color:#777; font-size:14px; }
 
 .gg-pin {
@@ -59,7 +80,6 @@
   transition: transform .2s ease;
 }
 .gg-pin:hover { transform: scale(1.06); }
-
 
 /* Modal - Square Shape Design */
 .gg-modal {
