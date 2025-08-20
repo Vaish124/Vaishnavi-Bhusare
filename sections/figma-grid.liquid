@@ -91,16 +91,43 @@
               document.getElementById('gg-modal-img').alt = product.title;
             }
             
-            // Show variants
-            let variantsHtml = '';
-            if (product.variants && product.variants.length > 1) {
-              variantsHtml = '<div class="variants-section"><h4>Options:</h4>';
-              product.variants.forEach(variant => {
-                variantsHtml += `<button class="variant-btn" data-variant-id="${variant.id}">${variant.title} - $${(variant.price / 100).toFixed(2)} CAD</button>`;
-              });
-              variantsHtml += '</div>';
-            }
-            document.getElementById('gg-modal-variants').innerHTML = variantsHtml;
+           // Show variants - Updated to match 1st screenshot format
+let variantsHtml = '';
+if (product.variants && product.variants.length > 1) {
+  // Get unique colors and sizes
+  const colors = [...new Set(product.variants.map(v => v.option1))];
+  const sizes = [...new Set(product.variants.map(v => v.option2))];
+  
+  variantsHtml = '<div class="variants-section">';
+  
+  // Color dropdown
+  if (colors.length > 1) {
+    variantsHtml += '<div class="variant-option">';
+    variantsHtml += '<label for="color-select">Color:</label>';
+    variantsHtml += '<select id="color-select" class="variant-select">';
+    colors.forEach(color => {
+      variantsHtml += `<option value="${color}">${color}</option>`;
+    });
+    variantsHtml += '</select>';
+    variantsHtml += '</div>';
+  }
+  
+  // Size dropdown
+  if (sizes.length > 1) {
+    variantsHtml += '<div class="variant-option">';
+    variantsHtml += '<label for="size-select">Size:</label>';
+    variantsHtml += '<select id="size-select" class="variant-select">';
+    sizes.forEach(size => {
+      variantsHtml += `<option value="${size}">${size}</option>`;
+    });
+    variantsHtml += '</select>';
+    variantsHtml += '</div>';
+  }
+  
+  variantsHtml += '</div>';
+}
+document.getElementById('gg-modal-variants').innerHTML = variantsHtml;
+
             
             // Show modal
             modal.style.display = 'block';
