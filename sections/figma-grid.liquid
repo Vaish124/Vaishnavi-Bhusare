@@ -46,7 +46,7 @@
             <p id="gg-modal-price"></p>
             <div id="gg-modal-description"></div>
             <div id="gg-modal-variants"></div>
-            <button id="gg-modal-add-cart" class="gg-add-to-cart">Add to Cart</button>
+            <button id="gg-modal-add-cart" class="gg-add-to-cart">ADD TO CART</button>
           </div>
         </div>
       </div>
@@ -91,43 +91,100 @@
               document.getElementById('gg-modal-img').alt = product.title;
             }
             
-           // Show variants - Updated to match 1st screenshot format
-let variantsHtml = '';
-if (product.variants && product.variants.length > 1) {
-  // Get unique colors and sizes
-  const colors = [...new Set(product.variants.map(v => v.option1))];
-  const sizes = [...new Set(product.variants.map(v => v.option2))];
-  
-  variantsHtml = '<div class="variants-section">';
-  
-  // Color dropdown
-  if (colors.length > 1) {
-    variantsHtml += '<div class="variant-option">';
-    variantsHtml += '<label for="color-select">Color:</label>';
-    variantsHtml += '<select id="color-select" class="variant-select">';
-    colors.forEach(color => {
-      variantsHtml += `<option value="${color}">${color}</option>`;
-    });
-    variantsHtml += '</select>';
-    variantsHtml += '</div>';
-  }
-  
-  // Size dropdown
-  if (sizes.length > 1) {
-    variantsHtml += '<div class="variant-option">';
-    variantsHtml += '<label for="size-select">Size:</label>';
-    variantsHtml += '<select id="size-select" class="variant-select">';
-    sizes.forEach(size => {
-      variantsHtml += `<option value="${size}">${size}</option>`;
-    });
-    variantsHtml += '</select>';
-    variantsHtml += '</div>';
-  }
-  
-  variantsHtml += '</div>';
-}
-document.getElementById('gg-modal-variants').innerHTML = variantsHtml;
+            // Show variants - Color buttons + Size dropdown + Add to Cart functionality
+            let variantsHtml = '';
+            if (product.variants && product.variants.length > 1) {
+              // Get unique colors and sizes
+              const sizes = [...new Set(product.variants.map(v => v.option1))].filter(Boolean);
+              const colors = [...new Set(product.variants.map(v => v.option2))].filter(Boolean);
+              
+              variantsHtml = '<div class="variants-section">';
+              
+              // Color buttons (like in your screenshot)
+              if (colors.length > 0) {
+                variantsHtml += '<div class="variant-option">';
+                variantsHtml += '<label>Color:</label>';
+                variantsHtml += '<div class="color-buttons">';
+                colors.forEach((color, index) => {
+                  const isSelected = index === 0 ? 'selected' : '';
+                  variantsHtml += `<button class="color-btn ${isSelected}" data-color="${color}">${color}</button>`;
+                });
+                variantsHtml += '</div>';
+                variantsHtml += '</div>';
+              }
+              
+              // Size dropdown
+              if (sizes.length > 0) {
+                variantsHtml += '<div class="variant-option">';
+                variantsHtml += '<label for="size-select">Size:</label>';
+                variantsHtml += '<select id="size-select" class="variant-select">';
+                variantsHtml += '<option value="">Choose your size</option>';
+                sizes.forEach(size => {
+                  variantsHtml += `<option value="${size}">${size}</option>`;
+                });
+                variantsHtml += '</select>';
+                variantsHtml += '</div>';
+              }
+              
+              variantsHtml += '</div>';
+            }
+            document.getElementById('gg-modal-variants').innerHTML = variantsHtml;
 
+            // Add event listeners for color buttons and Add to Cart
+            setTimeout(() => {
+              // Color button selection
+              const colorButtons = document.querySelectorAll('.color-btn');
+              colorButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                  colorButtons.forEach(b => b.classList.remove('selected'));
+                  this.classList.add('selected');
+                });
+              });
+              
+              // Add to Cart functionality
+              const addToCartBtn = document.getElementById('gg-modal-add-cart');
+              if (addToCartBtn) {
+                addToCartBtn.addEventListener('click', function() {
+                  const selectedColor = document.querySelector('.color-btn.selected')?.getAttribute('data-color') || colors[0];
+                  const selectedSize = document.getElementById('size-select')?.value;
+                  
+                  if (!selectedSize) {
+                    alert('Please select a size');
+                    return;
+                  }
+                  
+                  // Find the matching variant
+                  const selectedVariant = product.variants.find(v => 
+                    v.option1 === selectedSize && v.option2 === selectedColor
+                  );
+                  
+                  if (selectedVariant) {
+                    // Add main product to cart
+                    addToCart(selectedVariant.id, 1);
+                    
+                    // Auto-add Soft Winter Jacket if conditions match
+                    const triggerColor = document.querySelector('#gg-grid').getAttribute('data-trigger-color');
+                    const triggerSize = document.querySelector('#gg-grid').getAttribute('data-trigger-size');
+                    
+                    if (selectedColor === triggerColor && selectedSize === triggerSize) {
+                      const autoProductData = document.getElementById('gg-auto-product');
+                      if (autoProductData) {
+                        const autoProduct = JSON.parse(autoProductData.textContent);
+                        if (autoProduct && autoProduct.variants && autoProduct.variants.length > 0) {
+                          addToCart(autoProduct.variants[0].id, 1);
+                          alert(`Added ${product.title} and ${autoProduct.title} to cart!`);
+                        }
+                      }
+                    } else {
+                      alert(`Added ${product.title} to cart!`);
+                    }
+                    
+                    // Close modal
+                    document.getElementById('gg-modal').style.display = 'none';
+                  }
+                });
+              }
+            }, 100);
             
             // Show modal
             modal.style.display = 'block';
@@ -153,6 +210,27 @@ document.getElementById('gg-modal-variants').innerHTML = variantsHtml;
         modal.style.display = 'none';
       }
     });
+
+    // Add to cart function
+    function addToCart(variantId, quantity) {
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: variantId,
+          quantity: quantity
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Added to cart:', data);
+      })
+      .catch(error => {
+        console.error('Error adding to cart:', error);
+      });
+    }
   });
   </script>
 </section>
