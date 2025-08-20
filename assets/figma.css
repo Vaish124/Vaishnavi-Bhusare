@@ -1,4 +1,4 @@
-/* Grid layout - Updated for better mobile view */
+/* Grid layout */
 .gg-wrap { margin: 0 auto; padding: 32px 16px; max-width: 1200px; }
 .gg-grid__title { font-size: clamp(24px, 2.5vw, 36px); margin: 0 0 20px; font-weight: 700; }
 .gg-grid {
@@ -6,67 +6,22 @@
   gap: 20px;
   grid-template-columns: repeat(3, 1fr);
 }
-
-/* Updated responsive breakpoints */
-@media (max-width: 900px){ 
-  .gg-grid { 
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
-}
-
-@media (max-width: 480px){ 
-  .gg-grid { 
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  
-  .gg-wrap {
-    padding: 20px 12px;
-  }
-  
-  .gg-card {
-    min-height: 200px;
-  }
-  
-  .gg-card__img {
-    height: 200px;
-  }
-  
-  .gg-grid__title {
-    font-size: 20px;
-    margin-bottom: 15px;
-  }
-}
-
-/* Very small screens */
-@media (max-width: 320px){ 
-  .gg-grid { 
-    gap: 8px;
-  }
-  
-  .gg-card {
-    min-height: 180px;
-  }
-}
-
+@media (max-width: 900px){ .gg-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px){ .gg-grid { grid-template-columns: 1fr; } }
 .gg-card { 
   position: relative; 
   border-radius: 14px; 
   overflow: hidden; 
   background: #f6f6f6; 
-  min-height: 260px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  aspect-ratio: 1;
 }
 
 .gg-card__img { 
   width: 100%; 
-  height: 260px; 
+  height: 100%; 
   object-fit: cover; 
   display: block; 
-  object-position: center;
+  object-position: center top;
 }
 
 .gg-card__ph { display:flex; align-items:center; justify-content:center; height: 220px; color:#777; font-size:14px; }
@@ -264,20 +219,26 @@
 }
 
 /* Mobile responsive */
-@media(max-width: 768px){
-  .gg-modal__content {
-    max-width: 95%;
-    margin: 10px;
+@media (max-width: 480px){ 
+  .gg-grid { 
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
   
-  .gg-modal__body {
-    padding: 15px;
+  .gg-wrap {
+    padding: 20px 12px;
   }
   
-  .gg-modal__image img {
-    height: 200px;
+  .gg-card {
+    aspect-ratio: 0.8;
+  }
+  
+  .gg-grid__title {
+    font-size: 20px;
+    margin-bottom: 15px;
   }
 }
+
 
 /* Existing styles preserved */
 .gg-modal[hidden] { display: none; }
