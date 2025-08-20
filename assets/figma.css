@@ -8,22 +8,20 @@
 }
 @media (max-width: 900px){ .gg-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px){ .gg-grid { grid-template-columns: 1fr; } }
-
 .gg-card { 
   position: relative; 
   border-radius: 14px; 
   overflow: hidden; 
   background: #f6f6f6; 
-  aspect-ratio: 1; /* keep neat squares */
+  aspect-ratio: 1;
 }
 
 .gg-card__img { 
   width: 100%; 
   height: 100%; 
-  object-fit: contain;   /* <-- prevent cropping */
+  object-fit: cover; 
   display: block; 
-  object-position: center; /* center the whole image */
-  background: #fff; /* optional: hides any letterbox against gray */
+  object-position: center top;
 }
 
 .gg-card__ph { display:flex; align-items:center; justify-content:center; height: 220px; color:#777; font-size:14px; }
@@ -232,7 +230,7 @@
   }
   
   .gg-card {
-    aspect-ratio: 1; /* keep squares on mobile too */
+    aspect-ratio: 0.8;
   }
   
   .gg-grid__title {
@@ -240,6 +238,7 @@
     margin-bottom: 16px;
   }
 }
+
 
 /* Existing styles preserved */
 .gg-modal[hidden] { display: none; }
